@@ -1,14 +1,11 @@
 from __future__ import annotations
 
+import json
 import os
-from collections import OrderedDict
-from typing import Type
 
-import safetensors
-from safetensors.torch import load_file
-import torch
-import pandas as pd
 import numpy as np
+import pandas as pd
+import timm
 
 
 def load_model(model_path: str | os.path, filename="model.safetensors"):
@@ -18,10 +15,17 @@ def load_model(model_path: str | os.path, filename="model.safetensors"):
     :param filename: optional filename
     :return: returns the loaded model
     """
-    torch_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    config_file = open(os.path.join(model_path, "config.json"))
 
-    file = os.path.join(model_path, filename)
-    model = safetensors.torch.load_file(file, str(torch_device))
+    configs = json.load(config_file)
+    arch = configs['architecture']
+    file_path = os.path.join(model_path, filename)
+    model = timm.create_model(
+        model_name=arch,
+        pretrained_cfg_overlay=dict(file=file_path)
+    )
+
+    return model
 
 
 def load_labels(model_path: str | os.path, filename: str, categories: dict) -> dict:
@@ -30,7 +34,7 @@ def load_labels(model_path: str | os.path, filename: str, categories: dict) -> d
     :param filename:name of label file
     :param categories: cat name : cat number
     :param model_path: file name
-    :return: list of tags(labels)
+    :return: list of tags(labels) labels[category_name] = index
     """
     tag_path = os.path.join(model_path, filename)
 
@@ -56,9 +60,6 @@ def load_labels(model_path: str | os.path, filename: str, categories: dict) -> d
 
 
 if __name__ == '__main__':
-    path = r"C:\Users\khei\PycharmProjects\models\wd-vit-tagger-v3"
+    path = r"wd-vit-tagger-v3"
     r = load_model(path)
     print(r)
-    test_dict = {"rating": 9, "general": 0, "characters": 4}
-    t = load_labels(path, "selected_tags.csv", test_dict)
-    print(t)
