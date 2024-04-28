@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -58,11 +59,11 @@ class Runnable(QRunnable):
             print(f"Runnable Error processing {self.image_path}: {e}")
 
 
-def process_images_from_directory(model: torch.Tensor, directory: str) -> list[(str, np.ndarray)]:
+def process_images_from_directory(model_path: str, directory: str) -> list[(str, np.ndarray)]:
     """
     Processes all images in a directory, does not go into subdirectories.
     Images need to be shaped before predict can be called on it.
-    :param model: model, shape is used to resize of images
+    :param model_path: load config file for input shapes
     :param directory: directory of images to be precessed
     :return: [(filename, ndarray)] returns a list of file names and processed images
     """
@@ -72,7 +73,12 @@ def process_images_from_directory(model: torch.Tensor, directory: str) -> list[(
 
     # get dimensions from model
     # _, height, width, _ = model.shape  # idk how to do this in pytorch so i'm just gonna manually input the shape
-    size = (448, 448)
+    config_file = open(os.path.join(model_path, "config.json"))
+
+    configs = json.load(config_file)
+    _, height, width = configs['pretrained_cfg']['input_size']
+
+    size = (height, width)
     for filename in image_filenames:
         image_path = os.path.join(directory, filename)
         runnable = Runnable(image_path, size, preprocessed_images)
@@ -80,3 +86,8 @@ def process_images_from_directory(model: torch.Tensor, directory: str) -> list[(
 
     pool.waitForDone()
     return preprocessed_images
+
+
+if __name__ == '__main__':
+    print(process_images_from_directory("wd-vit-tagger-v3", "images"))
+
