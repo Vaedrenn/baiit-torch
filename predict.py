@@ -14,7 +14,7 @@ def predict(model_path: str | os.PathLike,
             image_dir: str | os.PathLike
             ) -> list[tuple[Any, dict[Any, list[list[Any] | Any]]]] | None:
     model = load_model(model_path=model_path)
-    load_labels(model_path=model_path, categories=categories)
+    labels = load_labels(model_path=model_path, categories=categories)
     transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
 
     process_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
@@ -39,11 +39,28 @@ def predict(model_path: str | os.PathLike,
             model = model.to("cpu")
 
     print("Processing results...")
-
+    # convert numpy to access results
+    outputs = outputs.numpy()
+    results = process_results(probs=outputs, labels=labels, thresholds=thresholds)
+    for x, y in results.items():
+        print(x,y)
 
     return None
 
 
+def process_results(probs, labels, thresholds):
+    tag_names = list(zip(labels["tags"], probs[0]))  # labels[tags] is the list of all tags
+    processed = {}
+
+    for category, indexes in labels.items():
+        # {category: [(tag, float)], 'rating':[('general', 0.43), ('sensitive', 0.63), ('questionable', 0.01)]
+        # Get all names from indexes if it is in index
+        if category != 'tags':
+            tag_probs = [tag_names[i] for i in indexes if tag_names[i][1] > thresholds[category]]
+            processed[category] = tag_probs
+    return processed
+
+
 category_dict = {"rating": 9, "general": 0, "characters": 4}
-thresh_dict = {"rating": 0.5, "general": 0.35, "characters": 7}
+thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
 predict(model_path='wd-vit-tagger-v3', categories=category_dict, thresholds=thresh_dict, image_dir="images")
