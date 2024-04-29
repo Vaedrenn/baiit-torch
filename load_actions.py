@@ -21,6 +21,7 @@ def load_model(model_path: str | os.path, filename="model.safetensors"):
 
     file_path = os.path.join(model_path, filename)
 
+    # load kwargs from create_model
     model_name = configs["architecture"]
     pretrained_cfg = configs['pretrained_cfg']
     pretrained_cfg['num_classes'] = configs['num_classes']
@@ -68,10 +69,16 @@ def load_labels(model_path: str | os.path, categories: dict, filename="selected_
     return labels
 
 
-if __name__ == '__main__':
+def test_load():
     path = r"wd-vit-tagger-v3"
     test_dict = {"rating": 9, "general": 0, "characters": 4}
-    r = load_model(path)
-    r2 = load_labels(path, filename="selected_tags.csv", categories=test_dict)
-    print(r)
-    print(r2.keys())
+    model = load_model(path)
+    labels = load_labels(path, filename="selected_tags.csv", categories=test_dict)
+
+    repo_id = "SmilingWolf/wd-vit-tagger-v3"
+    hf_model: nn.Module = timm.create_model("hf-hub:" + repo_id).eval()
+    state_dict = timm.models.load_state_dict_from_hf(repo_id)
+    hf_model.load_state_dict(state_dict)
+    hf_model.eval()
+
+    assert str(hf_model) == str(model)

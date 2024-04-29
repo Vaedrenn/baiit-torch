@@ -89,5 +89,5 @@ def process_images_from_directory(model_path: str, directory: str) -> list[(str,
 
 
 if __name__ == '__main__':
-    print(process_images_from_directory("wd-vit-tagger-v3", "images"))
+    process_images_from_directory("wd-vit-tagger-v3", "images")
 
