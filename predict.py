@@ -12,14 +12,15 @@ def predict(model_path: str | os.PathLike,
             thresholds: dict,
             categories: dict,
             image_dir: str | os.PathLike
-            ) -> dict[Any, dict[Any, list[list[Any] | Any]]]:
+            ) -> dict[Any, dict[Any, dict[Any, Any]]]:
+    # print("Loading model and labels")
     model = load_model(model_path=model_path)
     labels = load_labels(model_path=model_path, categories=categories)
     transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
 
     processed_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
 
-    print("Running inference...")
+    # print("Running inference...")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     results = {}
@@ -59,8 +60,8 @@ def process_results(probs, labels, thresholds):
     for category, indexes in labels.items():
         # Get all names from indexes if it is in index
         if category != 'tags':
-            tag_probs = [tag_names[i] for i in indexes if tag_names[i][1] > thresholds[category]]
-            processed[category] = tag_probs
+            tag_probs = dict([tag_names[i] for i in indexes if tag_names[i][1] > thresholds[category]])
+            processed[category] = dict(sorted(tag_probs.items(), key=lambda item: item[1], reverse=True))
     return processed
 
 
