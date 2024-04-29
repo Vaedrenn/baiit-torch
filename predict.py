@@ -19,6 +19,28 @@ def predict(model_path: str | os.PathLike,
 
     process_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
 
+    print("Running inference...")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    img = process_images[0][1]
+    with torch.inference_mode():
+        # move model to GPU, if available
+        if device.type != "cpu":
+            model = model.to(device)
+            img = img.to(device)
+        # run the model
+        outputs = model.forward(img)
+        # apply the final activation function (timm doesn't support doing this internally)
+        outputs = torch.nn.functional.sigmoid(outputs)
+        # move inputs, outputs, and model back to cpu if we were on GPU
+        if device.type != "cpu":
+            img = img.to("cpu")
+            outputs = outputs.to("cpu")
+            model = model.to("cpu")
+
+    print("Processing results...")
+
+
     return None
 
 
