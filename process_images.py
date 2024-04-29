@@ -73,6 +73,4 @@ def process_images_from_directory(model_path: str, directory: str, transform) ->
     return preprocessed_images
 
 
-if __name__ == '__main__':
-    process_images_from_directory("wd-vit-tagger-v3", "images")
 
