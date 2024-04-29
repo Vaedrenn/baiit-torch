@@ -24,7 +24,8 @@ def load_model(model_path: str | os.path, filename="model.safetensors"):
     # load kwargs from create_model
     model_name = configs["architecture"]
     pretrained_cfg = configs['pretrained_cfg']
-    pretrained_cfg['num_classes'] = configs['num_classes']
+    if 'num_classes' in configs:
+        pretrained_cfg['num_classes'] = configs['num_classes']
     model_args = configs['model_args']
 
     model: nn.Module = timm.create_model(
