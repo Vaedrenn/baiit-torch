@@ -15,12 +15,13 @@ class Runnable(QRunnable):
     :param preprocessed_images: return array
     """
 
-    def __init__(self, image_path, size, preprocessed_images):
+    def __init__(self, image_path, size, preprocessed_images, transform):
 
         super().__init__()
         self.image_path = image_path
         self.size = size
         self.preprocessed_images = preprocessed_images
+        self.transform = transform
 
     def run(self):
         try:
@@ -28,30 +29,14 @@ class Runnable(QRunnable):
             image = Image.open(self.image_path).convert('RGB')
 
             # Pad image to square
-            image_shape = image.size
-            max_dim = max(image_shape)
-            pad_left = (max_dim - image_shape[0]) // 2
-            pad_top = (max_dim - image_shape[1]) // 2
+            w, h = image.size
+            px = max(image.size)
+            # pad to square with white background
+            canvas = Image.new("RGB", (px, px), (255, 255, 255))
+            canvas.paste(image, ((px - w) // 2, (px - h) // 2))
 
-            padded_image = Image.new("RGB", (max_dim, max_dim), (255, 255, 255))
-            padded_image.paste(image, (pad_left, pad_top))
-
-            # Resize
-            if max_dim != self.size:
-                padded_image = padded_image.resize(
-                    self.size,
-                    Image.LANCZOS,
-                )
-
-            # Convert to numpy array
-            image_array = np.asarray(padded_image, dtype=np.float32)
-
-            # Convert PIL-native RGB to BGR
-            image_array = image_array[:, :, ::-1]
-
-            image_array = np.expand_dims(image_array, axis=0)
-
-            # shape needs to be 4 dims
+            image_array = self.transform(canvas).unsqueeze(0)
+            image_array = image_array[:, [2, 1, 0]]
 
             self.preprocessed_images.append((self.image_path, image_array))
 
@@ -59,10 +44,11 @@ class Runnable(QRunnable):
             print(f"Runnable Error processing {self.image_path}: {e}")
 
 
-def process_images_from_directory(model_path: str, directory: str) -> list[(str, np.ndarray)]:
+def process_images_from_directory(model_path: str, directory: str, transform) -> list[(str, np.ndarray)]:
     """
     Processes all images in a directory, does not go into subdirectories.
     Images need to be shaped before predict can be called on it.
+    :param transform:     inputs: Tensor = transform(img_input).unsqueeze(0)
     :param model_path: load config file for input shapes
     :param directory: directory of images to be precessed
     :return: [(filename, ndarray)] returns a list of file names and processed images
@@ -72,7 +58,6 @@ def process_images_from_directory(model_path: str, directory: str) -> list[(str,
     pool = QThreadPool.globalInstance()
 
     # get dimensions from model
-    # _, height, width, _ = model.shape  # idk how to do this in pytorch so i'm just gonna manually input the shape
     config_file = open(os.path.join(model_path, "config.json"))
 
     configs = json.load(config_file)
@@ -81,7 +66,7 @@ def process_images_from_directory(model_path: str, directory: str) -> list[(str,
     size = (height, width)
     for filename in image_filenames:
         image_path = os.path.join(directory, filename)
-        runnable = Runnable(image_path, size, preprocessed_images)
+        runnable = Runnable(image_path, size, preprocessed_images, transform)
         pool.start(runnable)
 
     pool.waitForDone()

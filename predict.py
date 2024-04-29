@@ -17,7 +17,8 @@ def predict(model_path: str | os.PathLike,
     load_labels(model_path=model_path, categories=categories)
     transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
 
-    process_images = process_images_from_directory(model_path=model_path, directory=image_dir)
+    process_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
+
     return None
 
 
