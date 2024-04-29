@@ -12,7 +12,21 @@ def predict(model_path: str | os.PathLike,
             thresholds: dict,
             categories: dict,
             image_dir: str | os.PathLike
-            ) -> dict[Any, dict[Any, dict[Any, Any]]]:
+            ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]]:
+    """
+    Predicts tags for images in directory
+    :param model_path: path to model
+    :param thresholds: dictionary of categories and thresholds, if threshold > probs then accept tag
+    :param categories: dictionary of category and their number in selected_tags.csv
+    :param image_dir: directory of images
+    :return: dict[ filename: {category: {tag:probs}, category: {tag:probs}, 'taglist': str, 'caption': str }]
+
+    Usage:
+    category_dict = {"rating": 9, "general": 0, "characters": 4}
+    thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
+    results = predict(model_path='wd-vit-tagger-v3', categories=category_dict, thresholds=thresh_dict, image_dir=r"images")
+    """
+
     # print("Loading model and labels")
     model = load_model(model_path=model_path)
     labels = load_labels(model_path=model_path, categories=categories)
@@ -47,9 +61,9 @@ def predict(model_path: str | os.PathLike,
         results_tags = process_results(probs=outputs, labels=labels, thresholds=thresholds)
         results[filename] = results_tags
 
-    for k, v in results.items():
-        print(k)
-        print(v['taglist'])
+    # for k, v in results.items():
+    #     print(k)
+    #     print(v['caption'])
     return results
 
 
@@ -76,7 +90,3 @@ def process_results(probs, labels, thresholds):
 
     return processed
 
-
-category_dict = {"rating": 9, "general": 0, "characters": 4}
-thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
-predict(model_path='wd-vit-tagger-v3', categories=category_dict, thresholds=thresh_dict, image_dir=r"images")
