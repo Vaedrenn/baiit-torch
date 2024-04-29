@@ -47,9 +47,9 @@ def predict(model_path: str | os.PathLike,
         results_tags = process_results(probs=outputs, labels=labels, thresholds=thresholds)
         results[filename] = results_tags
 
-    for k,v in results.items():
+    for k, v in results.items():
         print(k)
-        print(v)
+        print(v['taglist'])
     return results
 
 
@@ -62,6 +62,18 @@ def process_results(probs, labels, thresholds):
         if category != 'tags':
             tag_probs = dict([tag_names[i] for i in indexes if tag_names[i][1] > thresholds[category]])
             processed[category] = dict(sorted(tag_probs.items(), key=lambda item: item[1], reverse=True))
+
+    combined_names = []
+    for category, tags in processed.items():
+        combined_names.extend([t for t in tags])
+
+    # Convert to a string suitable for use as a training caption
+    caption = ", ".join(combined_names)
+    tag_list = caption.replace("_", " ").replace("(", "\(").replace(")", "\)")
+
+    processed['caption'] = caption
+    processed['taglist'] = tag_list
+
     return processed
 
 
