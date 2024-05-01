@@ -1,9 +1,9 @@
 import sys
 
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QSplitter, \
-    QSpinBox, QPushButton, QHBoxLayout, QGroupBox, QCompleter, QLineEdit, QApplication, QComboBox, QFrame
+    QSpinBox, QPushButton, QHBoxLayout, QCompleter, QLineEdit, QApplication
 
 from gui.tuplelistwidget import TupleCheckListWidget
 
@@ -13,7 +13,7 @@ class TagDisplayWidget(QWidget):
         super().__init__()
         self.categories = categories  # category_dict = {"rating": 9, "general": 0, "characters": 4}
         self.thresholds = thresholds  # thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
-        self.labels = []
+        self.labels = {}
         self.initUI()
 
     def initUI(self):
@@ -55,6 +55,40 @@ class TagDisplayWidget(QWidget):
         self.layout().addWidget(tag_box)
         self.layout().addWidget(button_box)
 
+    def get_index(self, category: str):
+        """
+        returns the index of the splitter component with the corresponding category
+        :param category: name of category to look for
+        :return: index of the splitter component with the corresponding category
+        """
+        for index in range(self.tag_display.count()):
+            if self.tag_display.widget(index).category == category:
+                return index
+
+    def update_tag_status(self):
+        """ Saves the check states of the current image"""
+        pass
+
+    def add_tags(self, text):
+        """
+        Adds user tags to tag list, if the tag is found in the char labels add it there if not goes into general
+        You can add any tag you want here it does not have to be in labels.
+        Adding a tag here will not add it to labels, you would have to add it manually to the txt
+        """
+        if self.labels is None:
+            return
+
+        pass
+
+    def select_all_tags(self):
+        """ Checks all tags in general and character tags"""
+        pass
+
+    def clear_tags(self):
+        """ Unchecks all tags in general and character tags"""
+        pass
+
+
 class TagDisplaySplitter(QSplitter):
     def __init__(self, categories: dict, thresholds: dict):
         super().__init__()
@@ -74,6 +108,7 @@ class TagDisplaySplitter(QSplitter):
 class TagDisplayComponent(QWidget):
     def __init__(self, cat_name: str, cat_id: int, threshold=50):
         super().__init__()
+        self.selected = None
         self.tag_list = TupleCheckListWidget()
         self.category = cat_name
         self.category_id = cat_id
@@ -85,7 +120,8 @@ class TagDisplayComponent(QWidget):
         label = QLabel(self.category.capitalize())
         slider = QSlider(Qt.Horizontal)
         spinbox = QSpinBox()
-        # self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.layout().setContentsMargins(0, 0, 5, 5)
 
         font = QFont()
         font.setPointSize(10)
