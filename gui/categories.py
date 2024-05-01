@@ -71,7 +71,7 @@ class TagDisplaySplitter(QSplitter):
         self.setChildrenCollapsible(False)
 
 
-class TagDisplayComponent(QGroupBox):
+class TagDisplayComponent(QWidget):
     def __init__(self, cat_name: str, cat_id: int, threshold=50):
         super().__init__()
         self.tag_list = TupleCheckListWidget()
@@ -85,16 +85,11 @@ class TagDisplayComponent(QGroupBox):
         label = QLabel(self.category.capitalize())
         slider = QSlider(Qt.Horizontal)
         spinbox = QSpinBox()
-        plus_btn = QPushButton('+')
-        minus_btn = QPushButton('-')
-        self.setContentsMargins(0, 0, 0, 0)
+        # self.layout().setContentsMargins(0, 0, 0, 0)
 
         font = QFont()
         font.setPointSize(10)
         label.setFont(font)
-
-        plus_btn.setMaximumWidth(30)
-        minus_btn.setMaximumWidth(30)
 
         slider.setMinimum(1)  # Anything lower than 1 will result in long load times when updating page
         slider.setMaximum(100)
@@ -112,19 +107,20 @@ class TagDisplayComponent(QGroupBox):
         top = QWidget()
         top.setLayout(QHBoxLayout())
         top.layout().addWidget(label)
-        top.layout().addStretch(1)
-        top.layout().addWidget(plus_btn)
-        top.layout().addWidget(minus_btn)
+        # top.layout().addStretch(1)
+        top.layout().addWidget(QLabel("    "))
         top.layout().setContentsMargins(0, 0, 0, 0)
+        top.layout().addWidget(slider)
+        top.layout().addWidget(spinbox)
 
-        mid = QWidget()
-        mid.setLayout(QHBoxLayout())
-        mid.layout().addWidget(slider)
-        mid.layout().addWidget(spinbox)
-        mid.layout().setContentsMargins(0, 0, 0, 0)
+        # mid = QWidget()
+        # mid.setLayout(QHBoxLayout())
+        # mid.layout().addWidget(slider)
+        # mid.layout().addWidget(spinbox)
+        # mid.layout().setContentsMargins(0, 0, 0, 0)
 
         self.layout().addWidget(top)
-        self.layout().addWidget(mid)
+        # self.layout().addWidget(mid)
         self.layout().addWidget(self.tag_list)
 
     def updateThreshold(self, value):
@@ -132,8 +128,8 @@ class TagDisplayComponent(QGroupBox):
 
 
 if __name__ == '__main__':
-    category_dict = {"rating": '9', "general": '0', "characters": '4'}
-    thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
+    category_dict = {"rating": '9', "characters": '4', "general": '9'}
+    thresh_dict = {"rating": 0.0, "characters": 0.35, "general": 7}
 
     app = QApplication(sys.argv)
     window = TagDisplayWidget(categories=category_dict, thresholds=thresh_dict)
