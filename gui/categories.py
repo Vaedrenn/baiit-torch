@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QSplitter, \
-    QSpinBox, QPushButton, QHBoxLayout, QGroupBox, QCompleter, QLineEdit, QApplication
+    QSpinBox, QPushButton, QHBoxLayout, QGroupBox, QCompleter, QLineEdit, QApplication, QComboBox
 
 from gui.tuplelistwidget import TupleCheckListWidget
 
@@ -23,21 +23,30 @@ class TagDisplayWidget(QSplitter):
             new_item = TagDisplayComponent(category, cat_id, self.thresholds[category])
             self.addWidget(new_item)
 
-        self.t_lineedit = QLineEdit()
-        self.t_completer = QCompleter()
+        self.lineedit = QLineEdit()
+        self.completer = QCompleter()
         tag_box = QWidget()
         tag_box.setLayout(QHBoxLayout())
 
-        self.t_lineedit.setPlaceholderText("  Add a tag here and hit enter")
-        t_button = QPushButton("Add Tag")
+        self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
+        button = QPushButton("Add Tag")
+        self.cate_options = QComboBox()
+        try:
+            self.cate_options.addItems(self.categories.values())
+        except TypeError:
+            print("TagDisplayWidget.cate_options has type 'int' but 'str' is expected, \n"
+                  " need to convert the ints in TagDisplayWidget.categories.values to strings ")
 
-        self.t_lineedit.setCompleter(self.t_completer)
-        self.t_lineedit.returnPressed.connect(lambda: self.add_tags(self.t_lineedit.text()))
-        t_button.clicked.connect(lambda: self.add_tags(self.t_lineedit.text()))
+        self.lineedit.setCompleter(self.completer)
+        self.lineedit.returnPressed.connect(lambda: self.add_tags(self.lineedit.text()))
+        button.clicked.connect(lambda: self.add_tags(self.lineedit.text()))
 
-        tag_box.layout().addWidget(self.t_lineedit)
-        tag_box.layout().addWidget(t_button)
+        tag_box.layout().addWidget(self.lineedit)
+        tag_box.layout().addWidget(self.cate_options)
+        tag_box.layout().addWidget(button)
+        tag_box.setContentsMargins(0, 5, 5, 20)
         self.addWidget(tag_box)
+
 
 class TagDisplayComponent(QWidget):
     def __init__(self, cat_name: str, cat_id: int, threshold=50):
@@ -74,7 +83,7 @@ class TagDisplayComponent(QWidget):
         slider.valueChanged.connect(self.updateThreshold)
         spinbox.valueChanged.connect(self.updateThreshold)
 
-        slider.setValue(int(self.threshold*100))
+        slider.setValue(int(self.threshold * 100))
 
         top = QGroupBox()
         top.setLayout(QHBoxLayout())
@@ -99,7 +108,7 @@ class TagDisplayComponent(QWidget):
 
 
 if __name__ == '__main__':
-    category_dict = {"rating": 9, "general": 0, "characters": 4}
+    category_dict = {"rating": '9', "general": '0', "characters": '4'}
     thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
 
     app = QApplication(sys.argv)
