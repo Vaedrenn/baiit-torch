@@ -18,8 +18,8 @@ class TagDisplayWidget(QWidget):
 
     def initUI(self):
         self.setLayout(QVBoxLayout())
-        tag_splitter = TagDisplaySplitter(self.categories, self.thresholds)
-        self.layout().addWidget(tag_splitter)
+        self.tag_display = TagDisplaySplitter(self.categories, self.thresholds)
+        self.layout().addWidget(self.tag_display)
         self.lineedit = QLineEdit()
         self.completer = QCompleter()
         tag_box = QWidget()
@@ -27,23 +27,33 @@ class TagDisplayWidget(QWidget):
 
         self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
         button = QPushButton("Add Tag")
-        self.cate_options = ComboBox()
-        try:
-            self.cate_options.addItems(self.categories.values())
-        except TypeError:
-            print("TagDisplayWidget.cate_options has type 'int' but 'str' is expected, \n"
-                  " need to convert the ints in TagDisplayWidget.categories.values to strings ")
 
         self.lineedit.setCompleter(self.completer)
         self.lineedit.returnPressed.connect(lambda: self.add_tags(self.lineedit.text()))
         button.clicked.connect(lambda: self.add_tags(self.lineedit.text()))
 
         tag_box.layout().addWidget(self.lineedit)
-        tag_box.layout().addWidget(self.cate_options)
         tag_box.layout().addWidget(button)
-        tag_box.setContentsMargins(0, 5, 5, 20)
-        self.layout().addWidget(tag_box)
+        tag_box.layout().setContentsMargins(0, 0, 0, 0)
 
+        button_box = QWidget()
+        button_box.setLayout(QHBoxLayout())
+        button_box.layout().setContentsMargins(0, 0, 0, 0)
+
+        store_tags = QPushButton("Save Changes")
+        b_select_all = QPushButton("Select All")
+        b_clear = QPushButton("Clear")
+
+        store_tags.clicked.connect(lambda: self.update_tag_status())
+        b_select_all.clicked.connect(lambda: self.select_all_tags())
+        b_clear.clicked.connect(lambda: self.clear_tags())
+
+        button_box.layout().addWidget(store_tags)
+        button_box.layout().addWidget(b_select_all)
+        button_box.layout().addWidget(b_clear)
+
+        self.layout().addWidget(tag_box)
+        self.layout().addWidget(button_box)
 
 class TagDisplaySplitter(QSplitter):
     def __init__(self, categories: dict, thresholds: dict):
@@ -77,7 +87,7 @@ class TagDisplayComponent(QGroupBox):
         spinbox = QSpinBox()
         plus_btn = QPushButton('+')
         minus_btn = QPushButton('-')
-        self.setContentsMargins(5, 5, 0, 0)
+        self.setContentsMargins(0, 0, 0, 0)
 
         font = QFont()
         font.setPointSize(10)
@@ -105,13 +115,13 @@ class TagDisplayComponent(QGroupBox):
         top.layout().addStretch(1)
         top.layout().addWidget(plus_btn)
         top.layout().addWidget(minus_btn)
-        top.layout().setContentsMargins(5, 5, 0, 0)
+        top.layout().setContentsMargins(0, 0, 0, 0)
 
         mid = QWidget()
         mid.setLayout(QHBoxLayout())
         mid.layout().addWidget(slider)
         mid.layout().addWidget(spinbox)
-        mid.layout().setContentsMargins(5, 5, 0, 0)
+        mid.layout().setContentsMargins(0, 0, 0, 0)
 
         self.layout().addWidget(top)
         self.layout().addWidget(mid)
@@ -119,16 +129,6 @@ class TagDisplayComponent(QGroupBox):
 
     def updateThreshold(self, value):
         self.threshold = value
-
-
-class ComboBox(QComboBox):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def showPopup(self):
-        super().showPopup()
-        popup = self.findChild(QFrame)
-        popup.move(popup.x(), popup.y() - self.height() - popup.height())
 
 
 if __name__ == '__main__':
