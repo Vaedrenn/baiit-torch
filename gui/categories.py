@@ -8,21 +8,18 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QSplitter, \
 from gui.tuplelistwidget import TupleCheckListWidget
 
 
-class TagDisplayWidget(QSplitter):
+class TagDisplayWidget(QWidget):
     def __init__(self, categories: dict, thresholds: dict):
         super().__init__()
-
         self.categories = categories  # category_dict = {"rating": 9, "general": 0, "characters": 4}
         self.thresholds = thresholds  # thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
         self.labels = []
         self.initUI()
 
     def initUI(self):
-        self.setOrientation(Qt.Vertical)
-        for category, cat_id in self.categories.items():
-            new_item = TagDisplayComponent(category, cat_id, self.thresholds[category])
-            self.addWidget(new_item)
-        self.setChildrenCollapsible(False)
+        self.setLayout(QVBoxLayout())
+        tag_splitter = TagDisplaySplitter(self.categories, self.thresholds)
+        self.layout().addWidget(tag_splitter)
         self.lineedit = QLineEdit()
         self.completer = QCompleter()
         tag_box = QWidget()
@@ -45,7 +42,23 @@ class TagDisplayWidget(QSplitter):
         tag_box.layout().addWidget(self.cate_options)
         tag_box.layout().addWidget(button)
         tag_box.setContentsMargins(0, 5, 5, 20)
-        self.addWidget(tag_box)
+        self.layout().addWidget(tag_box)
+
+
+class TagDisplaySplitter(QSplitter):
+    def __init__(self, categories: dict, thresholds: dict):
+        super().__init__()
+
+        self.categories = categories  # category_dict = {"rating": 9, "general": 0, "characters": 4}
+        self.thresholds = thresholds  # thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
+        self.initUI()
+
+    def initUI(self):
+        self.setOrientation(Qt.Vertical)
+        for category, cat_id in self.categories.items():
+            new_item = TagDisplayComponent(category, cat_id, self.thresholds[category])
+            self.addWidget(new_item)
+        self.setChildrenCollapsible(False)
 
 
 class TagDisplayComponent(QGroupBox):
@@ -64,6 +77,7 @@ class TagDisplayComponent(QGroupBox):
         spinbox = QSpinBox()
         plus_btn = QPushButton('+')
         minus_btn = QPushButton('-')
+        self.setContentsMargins(5, 5, 0, 0)
 
         font = QFont()
         font.setPointSize(10)
@@ -85,19 +99,19 @@ class TagDisplayComponent(QGroupBox):
 
         slider.setValue(int(self.threshold * 100))
 
-        top = QGroupBox()
+        top = QWidget()
         top.setLayout(QHBoxLayout())
         top.layout().addWidget(label)
         top.layout().addStretch(1)
         top.layout().addWidget(plus_btn)
         top.layout().addWidget(minus_btn)
-        # top.layout().setContentsMargins(0, 0, 0, 0)
+        top.layout().setContentsMargins(5, 5, 0, 0)
 
-        mid = QGroupBox()
+        mid = QWidget()
         mid.setLayout(QHBoxLayout())
         mid.layout().addWidget(slider)
         mid.layout().addWidget(spinbox)
-        # mid.layout().setContentsMargins(0, 0, 0, 0)
+        mid.layout().setContentsMargins(5, 5, 0, 0)
 
         self.layout().addWidget(top)
         self.layout().addWidget(mid)
@@ -112,7 +126,6 @@ class ComboBox(QComboBox):
         super().__init__(*args, **kwargs)
 
     def showPopup(self):
-
         super().showPopup()
         popup = self.findChild(QFrame)
         popup.move(popup.x(), popup.y() - self.height() - popup.height())
