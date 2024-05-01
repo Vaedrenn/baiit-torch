@@ -1,9 +1,9 @@
 import sys
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QSplitter, \
-    QSpinBox, QPushButton, QHBoxLayout, QGroupBox, QCompleter, QLineEdit, QApplication, QComboBox
+    QSpinBox, QPushButton, QHBoxLayout, QGroupBox, QCompleter, QLineEdit, QApplication, QComboBox, QFrame
 
 from gui.tuplelistwidget import TupleCheckListWidget
 
@@ -22,7 +22,7 @@ class TagDisplayWidget(QSplitter):
         for category, cat_id in self.categories.items():
             new_item = TagDisplayComponent(category, cat_id, self.thresholds[category])
             self.addWidget(new_item)
-
+        self.setChildrenCollapsible(False)
         self.lineedit = QLineEdit()
         self.completer = QCompleter()
         tag_box = QWidget()
@@ -30,7 +30,7 @@ class TagDisplayWidget(QSplitter):
 
         self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
         button = QPushButton("Add Tag")
-        self.cate_options = QComboBox()
+        self.cate_options = ComboBox()
         try:
             self.cate_options.addItems(self.categories.values())
         except TypeError:
@@ -48,7 +48,7 @@ class TagDisplayWidget(QSplitter):
         self.addWidget(tag_box)
 
 
-class TagDisplayComponent(QWidget):
+class TagDisplayComponent(QGroupBox):
     def __init__(self, cat_name: str, cat_id: int, threshold=50):
         super().__init__()
         self.tag_list = TupleCheckListWidget()
@@ -105,6 +105,17 @@ class TagDisplayComponent(QWidget):
 
     def updateThreshold(self, value):
         self.threshold = value
+
+
+class ComboBox(QComboBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def showPopup(self):
+
+        super().showPopup()
+        popup = self.findChild(QFrame)
+        popup.move(popup.x(), popup.y() - self.height() - popup.height())
 
 
 if __name__ == '__main__':
