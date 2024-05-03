@@ -65,6 +65,10 @@ class TagDisplayWidget(QWidget):
             if self.tag_display.widget(index).category == category:
                 return index
 
+    def get_threshold(self, category: str):
+        idx = self.get_index(category)
+        return self.tag_display.widget(idx).threshold
+
     def update_tag_status(self):
         """ Saves the check states of the current image"""
         pass
@@ -165,7 +169,7 @@ class TagDisplayComponent(QWidget):
 
 if __name__ == '__main__':
     category_dict = {"rating": '9', "characters": '4', "general": '9'}
-    thresh_dict = {"rating": 0.0, "characters": 0.35, "general": 7}
+    thresh_dict = {"rating": 0.0, "characters": 0.7, "general": 0.35}
 
     app = QApplication(sys.argv)
     window = TagDisplayWidget(categories=category_dict, thresholds=thresh_dict)
