@@ -167,11 +167,4 @@ class TagDisplayComponent(QWidget):
         self.threshold = value
 
 
-if __name__ == '__main__':
-    category_dict = {"rating": '9', "characters": '4', "general": '9'}
-    thresh_dict = {"rating": 0.0, "characters": 0.7, "general": 0.35}
 
-    app = QApplication(sys.argv)
-    window = TagDisplayWidget(categories=category_dict, thresholds=thresh_dict)
-    window.show()
-    sys.exit(app.exec_())
