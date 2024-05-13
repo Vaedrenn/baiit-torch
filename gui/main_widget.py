@@ -96,9 +96,7 @@ class CentralWidget(QWidget):
 
             self.model_button.clicked.connect(lambda: browse_directory(self.model_input))
             self.dir_button.clicked.connect(lambda: browse_directory(self.dir_input))
-            self.confirm_btn.clicked.connect(
-                lambda: predict(thresholds=parent.threshold, categories=parent.categories,
-                                image_dir=self.dir_input.text(), model_path=self.model_input.text()))
+            self.confirm_btn.clicked.connect(lambda: self.call_predict())
             self.cancel_btn.clicked.connect(lambda: self.reject())
 
             self.layout().addWidget(self.model_input, 0, 0)
@@ -108,7 +106,13 @@ class CentralWidget(QWidget):
             self.layout().addWidget(self.confirm_btn, 2, 0)
             self.layout().addWidget(self.cancel_btn, 2, 1)
 
-
+        def call_predict(self):
+            if self.dir_input.text() == "" or None:
+                return
+            if self.model_input.text() == "" or None:
+                return
+            predict(thresholds=self.parent().threshold, categories=self.parent().categories,
+                    image_dir=self.dir_input.text(), model_path=self.model_input.text())
 
 
 class MainWindow(QMainWindow):
