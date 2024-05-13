@@ -16,7 +16,10 @@ def load_model(model_path: str | os.path, filename="model.safetensors"):
     :param filename: optional filename
     :return: returns the loaded model
     """
-    config_file = open(os.path.join(model_path, "config.json"))
+    try:
+        config_file = open(os.path.join(model_path, "config.json"))
+    except FileNotFoundError:
+        return
     configs = json.load(config_file)
 
     file_path = os.path.join(model_path, filename)

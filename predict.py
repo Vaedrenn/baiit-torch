@@ -12,7 +12,7 @@ def predict(model_path: str | os.PathLike,
             thresholds: dict,
             categories: dict,
             image_dir: str | os.PathLike
-            ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]]:
+            ) -> None:
     """
     Predicts tags for images in directory
     :param model_path: path to model
@@ -29,7 +29,11 @@ def predict(model_path: str | os.PathLike,
 
     # print("Loading model and labels")
     model = load_model(model_path=model_path)
+    if model is None:
+        return
     labels = load_labels(model_path=model_path, categories=categories)
+    if labels is None or {}:
+        return
     transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
 
     processed_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
