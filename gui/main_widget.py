@@ -77,10 +77,13 @@ class CentralWidget(QWidget):
     def submit(self):
         dialog = self.SubmitDialog(self)
         dialog.results.connect(lambda x: self.process_results(x))
+        self.parent().model_folder = dialog.model_input
         dialog.exec_()
 
     def process_results(self, data: dict):
-        print(data)
+        for k, v in data.items():
+            print(k)
+            print(v)
 
     class SubmitDialog(QDialog):
         results = pyqtSignal(object)
@@ -110,6 +113,9 @@ class CentralWidget(QWidget):
             self.layout().addWidget(self.confirm_btn, 2, 0)
             self.layout().addWidget(self.cancel_btn, 2, 1)
 
+            if self.parent().model_folder is not None:
+                self.model_input.setText(self.parent().model_folder)
+
         def call_predict(self):
             if self.dir_input.text() == "" or None:
                 return
@@ -118,6 +124,7 @@ class CentralWidget(QWidget):
             stuff = predict(thresholds=self.parent().threshold, categories=self.parent().categories,
                             image_dir=self.dir_input.text(), model_path=self.model_input.text())
 
+            self.parent().model_folder = self.model_input.text()
             self.results.emit(stuff)
             self.done(1)
 
