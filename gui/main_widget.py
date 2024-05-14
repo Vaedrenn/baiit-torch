@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtCore import QSortFilterProxyModel
+from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QStyleFactory, QMainWindow, QPushButton, QVBoxLayout, \
     QStatusBar, QInputDialog, QFileDialog, QLineEdit, QGridLayout, QDialog, QProgressBar
 
@@ -26,8 +26,8 @@ def browse_directory(line_edit):
 class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
-        category_dict = {"rating": '9', "characters": '4', "general": '9'}
-        thresh_dict = {"rating": 0.0, "characters": 0.7, "general": 0.35}
+        category_dict = {"rating": 9, "general": 0, "characters": 4}
+        thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
         self.threshold = thresh_dict
         self.categories = category_dict
         self.model = None
@@ -35,7 +35,7 @@ class CentralWidget(QWidget):
         self.proxy_model = QSortFilterProxyModel()
 
         self.image_gallery = ImageGallery()
-        self.tag_display = TagDisplayWidget(categories=category_dict, thresholds=thresh_dict)
+        self.tag_display = TagDisplayWidget(categories=self.categories, thresholds=self.threshold)
 
         self.initUI()
 
@@ -64,8 +64,8 @@ class CentralWidget(QWidget):
         tag_all_btn = QPushButton("Tag All")
 
         submit_btn.clicked.connect(lambda: self.submit())
-        tag_curr_btn.clicked.connect(lambda: self.select_all_tags())
-        tag_all_btn.clicked.connect(lambda: self.clear_tags())
+        # tag_curr_btn.clicked.connect(lambda: self.select_all_tags())
+        # tag_all_btn.clicked.connect(lambda: self.clear_tags())
 
         button_box.layout().addWidget(submit_btn)
         button_box.layout().addWidget(tag_curr_btn)
@@ -76,11 +76,15 @@ class CentralWidget(QWidget):
 
     def submit(self):
         dialog = self.SubmitDialog(self)
-        result = dialog.exec_()
+        dialog.results.connect(lambda x: self.process_results(x))
+        dialog.exec_()
 
-        # results = predict(thresholds=self.threshold, categories=self.categories, )
+    def process_results(self, data: dict):
+        print(data)
 
     class SubmitDialog(QDialog):
+        results = pyqtSignal(object)
+
         def __init__(self, parent):
             super().__init__(parent)
             self.setLayout(QGridLayout())
@@ -111,8 +115,11 @@ class CentralWidget(QWidget):
                 return
             if self.model_input.text() == "" or None:
                 return
-            predict(thresholds=self.parent().threshold, categories=self.parent().categories,
-                    image_dir=self.dir_input.text(), model_path=self.model_input.text())
+            stuff = predict(thresholds=self.parent().threshold, categories=self.parent().categories,
+                            image_dir=self.dir_input.text(), model_path=self.model_input.text())
+
+            self.results.emit(stuff)
+            self.done(1)
 
 
 class MainWindow(QMainWindow):

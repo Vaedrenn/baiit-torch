@@ -12,7 +12,7 @@ def predict(model_path: str | os.PathLike,
             thresholds: dict,
             categories: dict,
             image_dir: str | os.PathLike
-            ) -> None:
+            ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]] | None:
     """
     Predicts tags for images in directory
     :param model_path: path to model
