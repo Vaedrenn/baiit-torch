@@ -13,6 +13,7 @@ class TagDisplayWidget(QWidget):
         super().__init__()
         self.categories = categories  # category_dict = {"rating": 9, "general": 0, "characters": 4}
         self.thresholds = thresholds  # thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
+        self.widget_index = {}
         self.labels = {}
         self.initUI()
 
@@ -29,8 +30,8 @@ class TagDisplayWidget(QWidget):
         button = QPushButton("Add Tag")
 
         self.lineedit.setCompleter(self.completer)
-        self.lineedit.returnPressed.connect(lambda: self.add_tags(self.lineedit.text()))
-        button.clicked.connect(lambda: self.add_tags(self.lineedit.text()))
+        self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
+        button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
 
         tag_box.layout().addWidget(self.lineedit)
         tag_box.layout().addWidget(button)
@@ -55,16 +56,6 @@ class TagDisplayWidget(QWidget):
         self.layout().addWidget(tag_box)
         self.layout().addWidget(button_box)
 
-    def get_index(self, category: str):
-        """
-        returns the index of the splitter component with the corresponding category
-        :param category: name of category to look for
-        :return: index of the splitter component with the corresponding category
-        """
-        for index in range(self.tag_display.count()):
-            if self.tag_display.widget(index).category == category:
-                return index
-
     def get_threshold(self, category: str):
         idx = self.get_index(category)
         return self.tag_display.widget(idx).threshold
@@ -73,7 +64,7 @@ class TagDisplayWidget(QWidget):
         """ Saves the check states of the current image"""
         pass
 
-    def add_tags(self, text):
+    def add_tag(self, text):
         """
         Adds user tags to tag list, if the tag is found in the char labels add it there if not goes into general
         You can add any tag you want here it does not have to be in labels.
@@ -99,14 +90,17 @@ class TagDisplaySplitter(QSplitter):
 
         self.categories = categories  # category_dict = {"rating": 9, "general": 0, "characters": 4}
         self.thresholds = thresholds  # thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
+        self.indexes = {}
         self.initUI()
 
     def initUI(self):
         self.setOrientation(Qt.Vertical)
         for category, cat_id in self.categories.items():
             new_item = TagDisplayComponent(category, cat_id, self.thresholds[category])
+            self.indexes[category] = new_item
+
             self.addWidget(new_item)
-        self.setChildrenCollapsible(False)
+        # self.setChildrenCollapsible(False)
 
 
 class TagDisplayComponent(QWidget):
@@ -166,5 +160,10 @@ class TagDisplayComponent(QWidget):
     def updateThreshold(self, value):
         self.threshold = value
 
-
-
+    def add_dict(self, tags: dict):
+        """
+        returns the index of the splitter component with the corresponding category
+        :param tags: thing to add
+        :return: index of the splitter component with the corresponding category
+        """
+        self.tag_list.addAll(tags)

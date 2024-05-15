@@ -26,8 +26,8 @@ def browse_directory(line_edit):
 class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
-        category_dict = {"rating": 9, "general": 0, "characters": 4}
-        thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
+        category_dict = {"rating": 9, "characters": 4, "general": 0}
+        thresh_dict = {"rating": 0.0, "characters": 0.7, "general": 0.35}
         self.threshold = thresh_dict
         self.categories = category_dict
         self.model = None
@@ -46,7 +46,8 @@ class CentralWidget(QWidget):
         self.setAutoFillBackground(True)
 
         self.setLayout(QHBoxLayout())
-        self.tag_display.setMaximumWidth(400)
+        self.tag_display.setMaximumWidth(350)
+        self.tag_display.layout().setContentsMargins(0,0,0,0)
 
         frame1 = QWidget()
         frame1.setLayout(QVBoxLayout())
@@ -60,6 +61,7 @@ class CentralWidget(QWidget):
         button_box.layout().setContentsMargins(0, 0, 0, 0)
 
         submit_btn = QPushButton("Submit")
+        filter_btn = QPushButton("Filter")
         tag_curr_btn = QPushButton("Tag Current")
         tag_all_btn = QPushButton("Tag All")
 
@@ -68,6 +70,7 @@ class CentralWidget(QWidget):
         # tag_all_btn.clicked.connect(lambda: self.clear_tags())
 
         button_box.layout().addWidget(submit_btn)
+        button_box.layout().addWidget(filter_btn)
         button_box.layout().addWidget(tag_curr_btn)
         button_box.layout().addWidget(tag_all_btn)
 
@@ -81,9 +84,12 @@ class CentralWidget(QWidget):
         dialog.exec_()
 
     def process_results(self, data: dict):
-        for k, v in data.items():
-            print(k)
-            print(v)
+        # filename: data
+        for filename in data.keys():
+            tags = data[filename]
+            for category in self.categories.keys():
+                a = self.tag_display.tag_display.indexes[category]
+                a.add_dict(tags=tags[category])
 
     class SubmitDialog(QDialog):
         results = pyqtSignal(object)
@@ -115,6 +121,7 @@ class CentralWidget(QWidget):
 
             if self.parent().model_folder is not None:
                 self.model_input.setText(self.parent().model_folder)
+
 
         def call_predict(self):
             if self.dir_input.text() == "" or None:

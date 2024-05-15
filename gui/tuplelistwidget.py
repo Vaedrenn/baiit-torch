@@ -14,9 +14,9 @@ class CustomListItem(QWidget):
         self.checkbox.setCheckState(Qt.Checked)
         self.data = text1
         layout.addWidget(self.checkbox)
-        layout.addWidget(QLabel(text1))
+        layout.addWidget(QLabel(str(text1)))
         layout.addStretch(1)
-        layout.addWidget(QLabel(text2))
+        layout.addWidget(QLabel(str(text2)))
 
     def get_checkbox(self):
         return self.checkbox
@@ -29,6 +29,10 @@ class TupleCheckListWidget(QListWidget):
     def __init__(self):
         super().__init__()
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)  # Allows ctrl and  shift click selection
+
+    def addAll(self, dictionary):
+        for k, v in dictionary.items():
+            self.addPair(k, v, Qt.Checked)
 
     def addPair(self, item1, item2, check_state):
         item = CustomListItem(item1, item2)
