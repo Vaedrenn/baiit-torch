@@ -1,13 +1,14 @@
 import sys
 
-from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
+from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal, QSize
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QStyleFactory, QMainWindow, QPushButton, QVBoxLayout, \
-    QStatusBar, QInputDialog, QFileDialog, QLineEdit, QGridLayout, QDialog, QProgressBar
+    QStatusBar, QInputDialog, QFileDialog, QLineEdit, QGridLayout, QDialog, QProgressBar, QListWidget, \
+    QStyledItemDelegate, QCompleter
 
 from categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
 from image_gallery import ImageGallery
-from predict import predict
+# from predict import predict
 
 
 def browse_directory(line_edit):
@@ -26,13 +27,15 @@ def browse_directory(line_edit):
 class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
-        category_dict = {"rating": 9, "characters": 4, "general": 0}
-        thresh_dict = {"rating": 0.0, "characters": 0.7, "general": 0.35}
-        self.threshold = thresh_dict
-        self.categories = category_dict
+        self.threshold = {"rating": 0.0, "characters": 0.7, "general": 0.35}
+        self.categories = {"rating": 9, "characters": 4, "general": 0}
         self.model = None
-        self.model_folder = None
+        self.model_folder = None  # cache
+
+        self.searchbar = QLineEdit()
+        self.tag_list = QListWidget()
         self.proxy_model = QSortFilterProxyModel()
+        self.search_completer = MultiCompleter()
 
         self.image_gallery = ImageGallery()
         self.tag_display = TagDisplayWidget(categories=self.categories, thresholds=self.threshold)
@@ -47,13 +50,41 @@ class CentralWidget(QWidget):
 
         self.setLayout(QHBoxLayout())
         self.tag_display.setMaximumWidth(350)
-        self.tag_display.layout().setContentsMargins(0,0,0,0)
+        self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
 
-        frame1 = QWidget()
-        frame1.setLayout(QVBoxLayout())
-        frame1.layout().setContentsMargins(0, 0, 0, 0)
+        tag_filter = QWidget()
+        tag_filter.setLayout(QVBoxLayout())
+        tag_filter.layout().setContentsMargins(0, 0, 0, 0)
+        tag_filter.setMaximumWidth(350)
+        search_box = QWidget()
+        search_box.setLayout(QHBoxLayout())
+        search_box.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.layout().addWidget(frame1)
+        self.searchbar.setPlaceholderText("  Filter Tags")
+        self.searchbar.returnPressed.connect(lambda: self.search_tags(self.searchbar.text()))
+        tag_button = QPushButton("Search")
+        search_box.layout().addWidget(self.searchbar)
+        search_box.layout().addWidget(tag_button)
+        tag_button.clicked.connect(lambda: self.search_tags(self.searchbar.text()))
+
+        self.tag_list.setSelectionMode(QListWidget.MultiSelection)  # Toggle style selection
+        self.tag_list.setAcceptDrops(False)
+        tl_delegate = TagListItemDelegate()
+        self.tag_list.setItemDelegate(tl_delegate)
+
+        deselect_all = QPushButton("Deselect All")
+
+        tag_filter.layout().addWidget(search_box)
+        tag_filter.layout().addWidget(self.tag_list)
+        tag_filter.layout().addWidget(deselect_all)
+
+        self.layout().addWidget(tag_filter)
+
+        gallery = QWidget()
+        gallery.setLayout(QVBoxLayout())
+        gallery.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.layout().addWidget(gallery)
         self.layout().addWidget(self.tag_display)
 
         button_box = QWidget()
@@ -74,8 +105,8 @@ class CentralWidget(QWidget):
         button_box.layout().addWidget(tag_curr_btn)
         button_box.layout().addWidget(tag_all_btn)
 
-        frame1.layout().addWidget(self.image_gallery)
-        frame1.layout().addWidget(button_box)
+        gallery.layout().addWidget(self.image_gallery)
+        gallery.layout().addWidget(button_box)
 
     def submit(self):
         dialog = self.SubmitDialog(self)
@@ -123,16 +154,17 @@ class CentralWidget(QWidget):
                 self.model_input.setText(self.parent().model_folder)
 
 
-        def call_predict(self):
-            if self.dir_input.text() == "" or None:
-                return
-            if self.model_input.text() == "" or None:
-                return
-            stuff = predict(thresholds=self.parent().threshold, categories=self.parent().categories,
-                            image_dir=self.dir_input.text(), model_path=self.model_input.text())
 
-            self.parent().model_folder = self.model_input.text()
-            self.results.emit(stuff)
+        def call_predict(self):
+            # if self.dir_input.text() == "" or None:
+            #     return
+            # if self.model_input.text() == "" or None:
+            #     return
+            # stuff = predict(thresholds=self.parent().threshold, categories=self.parent().categories,
+            #                 image_dir=self.dir_input.text(), model_path=self.model_input.text())
+            #
+            # self.parent().model_folder = self.model_input.text()
+            # self.results.emit(stuff)
             self.done(1)
 
 
@@ -143,6 +175,37 @@ class MainWindow(QMainWindow):
         self.center_widget = CentralWidget()
         self.setCentralWidget(self.center_widget)
         self.setStatusBar(QStatusBar())
+
+class TagListItemDelegate(QStyledItemDelegate):
+    """ Custom delegate for displaying larger item with larger text"""
+
+    def sizeHint(self, option, index):
+        # Customize the size of items
+        return QSize(100, 25)  # Adjust the width and height as needed
+
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        # Customize the font size of the item text
+        option.font.setPointSize(12)  # Adjust the font size as needed
+
+class MultiCompleter(QCompleter):
+    """ Multi Tag completer, allows for comma separated tag searching"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # self.setMaxVisibleItems(5)
+
+    def pathFromIndex(self, index):
+        path = super().pathFromIndex(index)
+
+        lst = str(self.widget().text()).split(', ')
+        if len(lst) > 1:
+            path = ', '.join(lst[:-1]) + ', ' + path
+
+        return path
+
+    def splitPath(self, path):
+        return [path.split(',')[-1].strip()]
 
 
 if __name__ == "__main__":
