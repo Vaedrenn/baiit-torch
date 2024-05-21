@@ -1,12 +1,19 @@
 import sys
 
+from PyQt5.QtCore import QSortFilterProxyModel
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QListView
+from image_gallery import ImageGallery
+from categories import TagDisplayWidget
 
 
 class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.threshold = {"rating": 0.0, "characters": 0.7, "general": 0.35}  # load from settings
+        self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
+        self.model = None
+        self.model_folder = None  # cache
 
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
@@ -14,8 +21,8 @@ class CentralWidget(QWidget):
         self.tag_filter = QListView()
         self.caption = QTextEdit()
 
-        self.image_gallery = None
-        self.tag_display = None
+        self.image_gallery = ImageGallery()
+        self.tag_display = TagDisplayWidget(categories=self.categories, thresholds=self.threshold)
 
         self.initUI()
 
@@ -46,9 +53,12 @@ class CentralWidget(QWidget):
         filter_widget.layout().addWidget(self.tag_filter)
         filter_widget.layout().addWidget(self.caption)
 
-        # Frame 2
+        # Frame 2   image gallery
+        # self.image_gallery
 
-        # Frame 3
+        # Frame 3   tag display, shows all tags related to image separated into their respective categories
+        self.tag_display.setMaximumWidth(300)
+        self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
 
         # Wrapup
         self.layout().addWidget(filter_widget)
