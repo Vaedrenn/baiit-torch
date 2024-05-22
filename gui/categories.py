@@ -142,10 +142,10 @@ class TagDisplayComponent(QWidget):
         top.setLayout(QHBoxLayout())
         top.layout().addWidget(label)
         # top.layout().addStretch(1)
-        top.layout().addWidget(QLabel("    "))
+        # top.layout().addWidget(QLabel("    "))
         top.layout().setContentsMargins(0, 0, 0, 0)
-        top.layout().addWidget(slider)
-        top.layout().addWidget(spinbox)
+        # top.layout().addWidget(slider)
+        # top.layout().addWidget(spinbox)
 
         # mid = QWidget()
         # mid.setLayout(QHBoxLayout())
