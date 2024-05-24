@@ -3,12 +3,19 @@ import sys
 from PyQt5.QtCore import QSortFilterProxyModel, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
-    QLineEdit, QCompleter, QTextEdit, QListView, QStyleFactory, QGroupBox
+    QLineEdit, QCompleter, QTextEdit, QListView, QStyleFactory, QGroupBox, QTabWidget, QMainWindow
 
 from gui.dark_palette import create_dark_palette
 from image_gallery import ImageGallery
 from categories import TagDisplayWidget
 
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setPalette(create_dark_palette())
+        self.center_widget = CentralWidget()
+        self.setCentralWidget(self.center_widget)
 
 class CentralWidget(QWidget):
     def __init__(self):
@@ -70,54 +77,34 @@ class CentralWidget(QWidget):
         navbar.setLayout(QVBoxLayout())
         navbar.setMaximumWidth(40)
         navbar.layout().setContentsMargins(0, 0, 0, 0)
-
-        start_btn = QPushButton()
-        start_ico = QIcon(r"ICONS/play.png")
-        start_btn.setIcon(start_ico)
-        start_btn.setIconSize(QSize(30, 30))
-        start_btn.setToolTip("Predict tags for images")
-        start_btn.clicked.connect(self.submit)
-
-        write_btn = QPushButton()
-        write_ico = QIcon(r"ICONS/WRITE.png")
-        write_btn.setIcon(write_ico)
-        write_btn.setIconSize(QSize(30, 30))
-        write_btn.setToolTip("Write tags to file")
-        write_btn.clicked.connect(self.write_tags)
-
-        move_btn = QPushButton()
-        move_ico = QIcon(r"ICONS/MOVE.png")
-        move_btn.setIcon(move_ico)
-        move_btn.setIconSize(QSize(30, 30))
-        move_btn.setToolTip("Move images to folder")
-        move_btn.clicked.connect(self.move_images)
-
-        gallery_btn = QPushButton()
-        gallery_ico = QIcon(r"ICONS/GALLERY.png")
-        gallery_btn.setIcon(gallery_ico)
-        gallery_btn.setIconSize(QSize(30, 30))
-        # gallery_btn.clicked.connect()  # Uncomment and define the method when needed
-
-        settings_btn = QPushButton()
-        setting_ico = QIcon(r"ICONS/SETTINGS.png")
-        settings_btn.setIcon(setting_ico)
-        settings_btn.setIconSize(QSize(30, 30))
-        settings_btn.setToolTip("Settings")
-        settings_btn.clicked.connect(self.settings)
-
-        navbar.layout().addWidget(start_btn)
-        navbar.layout().addWidget(write_btn)
-        navbar.layout().addWidget(move_btn)
-        navbar.layout().addWidget(gallery_btn)
-        navbar.layout().addStretch(10)
-        navbar.layout().setSpacing(10)
-        navbar.layout().addWidget(settings_btn)
+        navbar.layout().setSpacing(5)
+        self.add_buttons_to_navbar(navbar)
 
         # Wrapup
         self.layout().addWidget(navbar)
         self.layout().addWidget(filter_widget)
         self.layout().addWidget(self.image_gallery)
         self.layout().addWidget(self.tag_display)
+
+    def add_buttons_to_navbar(self, navbar):
+        buttons_info = [
+            ("Predict tags for images", "ICONS/play.png", self.submit),
+            ("Write tags to file", "ICONS/WRITE.png", self.write_tags),
+            ("Export tags", "ICONS/EXPORT.png", self.export),
+            ("Move images to folder", "ICONS/MOVE.png", self.move_images),
+            ("", "ICONS/GALLERY.png", self.move_images),  # Connect when needed
+            ("Settings", "ICONS/SETTINGS.png", self.settings)
+        ]
+
+        for tooltip, icon_path, callback in buttons_info:
+            btn = QPushButton()
+            btn.setIconSize(QSize(30, 30))
+            btn.setIcon(QIcon(icon_path))
+            btn.setToolTip(tooltip)
+            btn.clicked.connect(callback)
+            if tooltip == "Settings":
+                navbar.layout().addStretch()
+            navbar.layout().addWidget(btn)
 
     def filter_tags(self, text):
         # Placeholder method for filtering tags
@@ -131,6 +118,9 @@ class CentralWidget(QWidget):
         # Placeholder method for writing tags to file
         print("Write tags action triggered")
 
+    def export(self):
+        print("Export tags action triggered")
+
     def move_images(self):
         # Placeholder method for moving images
         print("Move images action triggered")
@@ -138,6 +128,7 @@ class CentralWidget(QWidget):
     def settings(self):
         # Placeholder method for settings
         print("Settings action triggered")
+
 
 if __name__ == "__main__":
     # Qt Application
