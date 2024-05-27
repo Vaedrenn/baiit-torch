@@ -70,6 +70,7 @@ class CentralWidget(QWidget):
         filter_widget.layout().addWidget(self.tag_list)
 
         # Frame 2   image gallery
+        self.image_gallery.clicked.connect(self.update_page)  # on click change image
 
         # Frame 3   tag display, shows all tags related to image separated into their respective categories
         self.tag_display.setMaximumWidth(300)
@@ -179,11 +180,20 @@ class CentralWidget(QWidget):
             Qt.UserRole)  # Filter by TEXT role, each item comes with a string of all checked tags
         self.proxy_model.setFilterRegularExpression(regex)  # Apply filter
 
+    def update_page(self, item):
+        filename = item.data()
+        for category in self.categories.keys():
+            tags = self.model.get_tags(filename, category)
+            self.update_tags(category, tags, True)
+
+
     def update_tags(self, category, tags, tag_state):
         """ Refreshes the tags in the given checklist"""
         if tags is None:
             return
-        self.tag_display.get
+        widget = self.tag_display.get(category)
+        widget.add_dict(tags, tag_state)
+
     def write_tags(self):
         # Placeholder method for writing tags to file
         print("Write tags action triggered")

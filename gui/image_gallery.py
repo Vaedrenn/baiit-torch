@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QApplication
 
+
 class ImageGallery(QListView):
     def __init__(self):
         super().__init__()
@@ -24,6 +25,7 @@ class ImageGallery(QListView):
         """
         file_path = self.model().data(index, Qt.DisplayRole)
         QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+
 
 class ThumbnailDelegate(QStyledItemDelegate):
     """ Custom delegate for displaying images, removes check box and names for better formatting"""

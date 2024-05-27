@@ -106,3 +106,11 @@ class TagDisplayComponent(QWidget):
         top.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().addLayout(top)
         self.layout().addWidget(self.tag_list)
+
+    def add_dict(self, tags: dict, checkstate: dict):
+        self.tag_list.clear()
+        for tag_name, value in tags.items():
+            percentage = f"{value * 100:.2f}%"  # Format value as percentage
+            self.tag_list.addPair(tag_name, percentage, True)
+
+
