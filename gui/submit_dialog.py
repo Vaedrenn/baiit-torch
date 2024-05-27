@@ -31,7 +31,6 @@ class ThresholdDialog(QDialog):
         main_layout.addLayout(selection_grid)
 
         # Add sliders and spinboxes for each threshold
-        self.sliders = {}
         self.spinboxes = {}
         for category, value in self.thresholds:
             # Create a horizontal layout for the label and spinbox
@@ -46,23 +45,9 @@ class ThresholdDialog(QDialog):
             h_layout.addWidget(label)
             h_layout.addWidget(spinbox)
 
-            # Create and configure the slider
-            slider = QSlider(Qt.Horizontal)
-            slider.setMinimum(1)
-            slider.setMaximum(100)
-            slider.setTickInterval(1)
-            slider.setValue(value)
-
-            # Connect slider and spinbox signals
-            slider.valueChanged.connect(lambda val, spn=spinbox: spn.setValue(val))
-            spinbox.valueChanged.connect(lambda val, sld=slider: sld.setValue(val))
-
-            # Add to layout and store references
-            self.sliders[category] = slider
             self.spinboxes[category] = spinbox
 
             main_layout.addLayout(h_layout)
-            main_layout.addWidget(slider)
 
         # Add Confirm and Cancel buttons
         button_layout = QHBoxLayout()

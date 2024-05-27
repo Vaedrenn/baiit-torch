@@ -15,7 +15,7 @@ class ImageGallery(QListView):
         self.setViewMode(QListWidget.IconMode)
         self.setAcceptDrops(False)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)  # ctrl and shift click selection
-        self.setIconSize(QSize(400, 200))
+        self.setIconSize(QSize(200, 200))
         self.setResizeMode(QListWidget.Adjust)  # Reorganize thumbnails on resize
         self.doubleClicked.connect(self.open_image)
 

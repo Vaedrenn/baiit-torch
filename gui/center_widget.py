@@ -47,23 +47,19 @@ class CentralWidget(QWidget):
         filter_widget.layout().setContentsMargins(0, 0, 0, 0)
         filter_widget.setMaximumWidth(300)
 
-        search_box = QWidget()
-        search_box.setLayout(QHBoxLayout())
-        search_box.layout().setContentsMargins(0, 0, 0, 0)
-
+        search_box = QHBoxLayout()
         self.searchbar.setPlaceholderText("  Filter Tags")
         self.searchbar.returnPressed.connect(lambda: self.filter_tags(self.searchbar.text()))
         self.clear_btn = QPushButton("Clear Filter")
 
-        search_box.layout().addWidget(self.searchbar)
-        search_box.layout().addWidget(self.clear_btn)
+        search_box.addWidget(self.searchbar)
+        search_box.addWidget(self.clear_btn)
 
         self.caption.setReadOnly(True)
         self.caption.setMaximumHeight(200)
 
-        filter_widget.layout().addWidget(search_box)
+        filter_widget.layout().addLayout(search_box)
         filter_widget.layout().addWidget(self.tag_filter)
-        filter_widget.layout().addWidget(self.caption)
 
         # Frame 2   image gallery
         # self.image_gallery
@@ -106,13 +102,23 @@ class CentralWidget(QWidget):
                 navbar.layout().addStretch()
             navbar.layout().addWidget(btn)
 
+    def submit(self):
+        dialog = self.SubmitDialog(self)
+        dialog.results.connect(lambda x: self.process_results(x))
+        self.parent().model_folder = dialog.model_input
+        dialog.exec_()
+
+    def process_results(self, data: dict):
+        # filename: data
+        for filename in data.keys():
+            tags = data[filename]
+            for category in self.categories.keys():
+                a = self.tag_display.tag_display.indexes[category]
+                a.add_dict(tags=tags[category])
+
     def filter_tags(self, text):
         # Placeholder method for filtering tags
         print(f"Filtering tags with: {text}")
-
-    def submit(self):
-        # Placeholder method for submit action
-        print("Submit action triggered")
 
     def write_tags(self):
         # Placeholder method for writing tags to file
