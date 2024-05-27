@@ -7,6 +7,12 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVB
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
     QListWidgetItem
 
+import io
+
+from PIL import Image
+from PIL.ExifTags import TAGS
+from PIL.TiffImagePlugin import ImageFileDirectory_v2
+
 from categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
 from gui.gallery_model import ImageGalleryTableModel
@@ -181,8 +187,30 @@ class CentralWidget(QWidget):
         self.caption.setText(item.data(role=Qt.UserRole))
 
     def write_tags(self):
+        """
+        Write tags to image's exif
+        :return: True if successful, False if labels or model is missing
+        """
+        if not self.model:
+            return False
+
         # Placeholder method for writing tags to file
         print("Write tags action triggered")
+        selected_rows = self.image_gallery.selectedIndexes()
+        for row in selected_rows:
+            item = self.image_gallery.item(row)
+            text = item.data(Qt.UserRole)
+            filepath = item.data(Qt.DisplayRole)
+
+            with Image.open(filepath) as img:
+                ifd = ImageFileDirectory_v2()
+                exif_stream = io.BytesIO()
+                _TAGS = dict(((v, k) for k, v in TAGS.items()))  # enumerate possible exif tags
+                ifd[_TAGS["ImageDescription"]] = text
+                ifd.save(exif_stream)
+                hex = b"Exif\x00\x00" + exif_stream.getvalue()
+
+                img.save(filepath, exif=hex)
 
     def import_tags(self, filename):
         with open(filename, 'r') as infile:
