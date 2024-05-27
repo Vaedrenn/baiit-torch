@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVB
     QLineEdit, QCompleter, QTextEdit, QListView, QStyleFactory, QGroupBox, QTabWidget, QMainWindow
 
 from gui.dark_palette import create_dark_palette
+from gui.gallery_model import ImageGalleryTableModel
 from image_gallery import ImageGallery
 from categories import TagDisplayWidget
 
@@ -103,18 +104,34 @@ class CentralWidget(QWidget):
             navbar.layout().addWidget(btn)
 
     def submit(self):
-        dialog = self.SubmitDialog(self)
-        dialog.results.connect(lambda x: self.process_results(x))
-        self.parent().model_folder = dialog.model_input
-        dialog.exec_()
+        # dialog = self.SubmitDialog(self)
+        # dialog.results.connect(lambda x: self.process_results(x))
+        # self.parent().model_folder = dialog.model_input
+        # dialog.exec_()
+        print("submit clicked")
+        results = {
+            "../images/image1.jpg": {
+                "rating": {"safe": 0.9},
+                "characters": {"cat": 0.8},
+                "general": {"cute": 0.95, "animal": 0.85}
+            },
+            "../images/image2.jpg": {
+                "rating": {"explicit": 0.95},
+                "characters": {"dog": 0.9},
+                "general": {"cute": 0.75, "animal": 0.65}
+            },
+            "../images/image3.jpg": {
+                "rating": {"questionable": 0.8},
+                "characters": {"bird": 0.85},
+                "general": {"cute": 0.55, "animal": 0.75}
+            }
+        }
+        self.process_results(results)
 
     def process_results(self, data: dict):
         # filename: data
-        for filename in data.keys():
-            tags = data[filename]
-            for category in self.categories.keys():
-                a = self.tag_display.tag_display.indexes[category]
-                a.add_dict(tags=tags[category])
+        self.model = ImageGalleryTableModel(data)
+        self.image_gallery.setModel(self.model)
 
     def filter_tags(self, text):
         # Placeholder method for filtering tags

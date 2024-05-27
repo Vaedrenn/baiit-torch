@@ -1,7 +1,6 @@
 from PyQt5.QtCore import Qt, QSize, QUrl
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate
-
+from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QApplication
 
 class ImageGallery(QListView):
     def __init__(self):
@@ -11,7 +10,6 @@ class ImageGallery(QListView):
     def initUI(self):
         delegate = ThumbnailDelegate()
         self.setItemDelegate(delegate)
-        # self.setModel(self.proxy_model)  # set proxy model for filtering
         self.setViewMode(QListWidget.IconMode)
         self.setAcceptDrops(False)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)  # ctrl and shift click selection
@@ -19,14 +17,13 @@ class ImageGallery(QListView):
         self.setResizeMode(QListWidget.Adjust)  # Reorganize thumbnails on resize
         self.doubleClicked.connect(self.open_image)
 
-    def open_image(self, item):
+    def open_image(self, index):
         """
         Display Open image in image explorer
-        :param item: item in the model, item holds file path and tag info
+        :param index: index in the model, item holds file path and tag info
         """
-
-        return
-
+        file_path = self.model().data(index, Qt.DisplayRole)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
 
 class ThumbnailDelegate(QStyledItemDelegate):
     """ Custom delegate for displaying images, removes check box and names for better formatting"""
