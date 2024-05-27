@@ -1,14 +1,15 @@
 import sys
 
-from PyQt5.QtCore import QSortFilterProxyModel, QSize
+from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
-    QLineEdit, QCompleter, QTextEdit, QListView, QStyleFactory, QGroupBox, QTabWidget, QMainWindow
+    QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
+    QListWidgetItem
 
+from categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
 from gui.gallery_model import ImageGalleryTableModel
 from image_gallery import ImageGallery
-from categories import TagDisplayWidget
 
 
 class MainWindow(QMainWindow):
@@ -29,7 +30,7 @@ class CentralWidget(QWidget):
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
         self.clear_btn = QPushButton()
-        self.tag_filter = QListView()
+        self.tag_list = QListWidget()
         self.caption = QTextEdit()
 
         self.image_gallery = ImageGallery()
@@ -60,7 +61,7 @@ class CentralWidget(QWidget):
         self.caption.setMaximumHeight(200)
 
         filter_widget.layout().addLayout(search_box)
-        filter_widget.layout().addWidget(self.tag_filter)
+        filter_widget.layout().addWidget(self.tag_list)
 
         # Frame 2   image gallery
         # self.image_gallery
@@ -132,6 +133,10 @@ class CentralWidget(QWidget):
         # filename: data
         self.model = ImageGalleryTableModel(data)
         self.image_gallery.setModel(self.model)
+        self.tag_list.clear()
+        for tag, count in sorted(self.model.tags.items(), key=lambda item: item[1], reverse=True):
+            formatted_tag = f"{count:>4}  {tag}"
+            self.tag_list.addItem(QListWidgetItem(formatted_tag))
 
     def filter_tags(self, text):
         # Placeholder method for filtering tags
