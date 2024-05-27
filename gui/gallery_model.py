@@ -28,6 +28,8 @@ class ImageGalleryTableModel(QAbstractTableModel):
             return filename
         elif role == Qt.DecorationRole:
             return QIcon(filename)
+        elif role == Qt.UserRole:
+            return self.results[filename]['caption']
 
         return QVariant()
 
@@ -44,7 +46,8 @@ class ImageGalleryTableModel(QAbstractTableModel):
 
         for image_data in results.values():
             for category, tags in image_data.items():
-                for tag in tags.keys():
-                    tag_counts[tag] += 1
+                if category not in ['caption', 'taglist']:  # Exclude caption and taglist
+                    for tag in tags.keys():
+                        tag_counts[tag] += 1
 
         return dict(tag_counts)

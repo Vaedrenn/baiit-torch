@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, QRegularExpression, QSortFilterProxyModel, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
@@ -19,6 +19,7 @@ class MainWindow(QMainWindow):
         self.center_widget = CentralWidget()
         self.setCentralWidget(self.center_widget)
 
+
 class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -26,6 +27,7 @@ class CentralWidget(QWidget):
         self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
         self.model = None
         self.model_folder = None  # cache
+        self.proxy_model = QSortFilterProxyModel()
 
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
@@ -51,11 +53,14 @@ class CentralWidget(QWidget):
 
         search_box = QHBoxLayout()
         self.searchbar.setPlaceholderText("  Filter Tags")
-        self.searchbar.returnPressed.connect(lambda: self.filter_tags(self.searchbar.text()))
+        self.searchbar.returnPressed.connect(lambda: self.filter_images(self.searchbar.text()))
         self.clear_btn = QPushButton("Clear Filter")
 
         search_box.addWidget(self.searchbar)
         search_box.addWidget(self.clear_btn)
+
+        self.tag_list.setSelectionMode(QListWidget.MultiSelection)  # Toggle style selection
+        self.tag_list.itemClicked.connect(self.filter_images)  # on click filter
 
         self.caption.setReadOnly(True)
         self.caption.setMaximumHeight(200)
@@ -64,7 +69,6 @@ class CentralWidget(QWidget):
         filter_widget.layout().addWidget(self.tag_list)
 
         # Frame 2   image gallery
-        # self.image_gallery
 
         # Frame 3   tag display, shows all tags related to image separated into their respective categories
         self.tag_display.setMaximumWidth(300)
@@ -114,17 +118,20 @@ class CentralWidget(QWidget):
             "../images/image1.jpg": {
                 "rating": {"safe": 0.9},
                 "characters": {"cat": 0.8},
-                "general": {"cute": 0.95, "animal": 0.85}
+                "general": {"cute": 0.95, "animal": 0.85},
+                "caption": "safe, cat, cute, animal"
             },
             "../images/image2.jpg": {
-                "rating": {"explicit": 0.95},
+                "rating": {"safe": 0.95},
                 "characters": {"dog": 0.9},
-                "general": {"cute": 0.75, "animal": 0.65}
+                "general": {"cute": 0.75, "animal": 0.65},
+                "caption": "safe, dog, cute, animal"
             },
             "../images/image3.jpg": {
-                "rating": {"questionable": 0.8},
+                "rating": {"safe": 0.8},
                 "characters": {"bird": 0.85},
-                "general": {"cute": 0.55, "animal": 0.75}
+                "general": {"cute": 0.55, "animal": 0.75},
+                "caption": "safe, bird, cute, animal"
             }
         }
         self.process_results(results)
@@ -132,15 +139,44 @@ class CentralWidget(QWidget):
     def process_results(self, data: dict):
         # filename: data
         self.model = ImageGalleryTableModel(data)
-        self.image_gallery.setModel(self.model)
+        self.proxy_model.setSourceModel(self.model)
+        self.image_gallery.setModel(self.proxy_model)
         self.tag_list.clear()
         for tag, count in sorted(self.model.tags.items(), key=lambda item: item[1], reverse=True):
             formatted_tag = f"{count:>4}  {tag}"
             self.tag_list.addItem(QListWidgetItem(formatted_tag))
 
-    def filter_tags(self, text):
-        # Placeholder method for filtering tags
-        print(f"Filtering tags with: {text}")
+    def filter_images(self):
+        # Get all tags and remove (number)
+        selected_tags = [
+            item.text().split(maxsplit=1)[1].strip()
+            for item in self.tag_list.selectedItems()
+        ]
+        if not selected_tags:
+            # Clear filter if no tags are selected
+            self.proxy_model.setFilterRegularExpression(QRegularExpression())
+            return
+
+        regex_pattern = "(?=.*{})".format(")(?=.*".join(selected_tags))  # Regex for selecting things with all tags
+
+        # Create QRegularExpression object
+        regex = QRegularExpression(regex_pattern, QRegularExpression.CaseInsensitiveOption)
+
+        self.proxy_model.setFilterRole(
+            Qt.UserRole)  # Filter by UserRole, each item comes with a string of all checked tags
+        self.proxy_model.setFilterRegularExpression(regex)  # Apply filter
+
+    def clear_filter(self):
+        """
+        clears filters
+        """
+        self.tag_list.clearSelection()
+        # Create QRegularExpression object
+        regex = QRegularExpression('', QRegularExpression.CaseInsensitiveOption)
+
+        self.proxy_model.setFilterRole(
+            Qt.UserRole)  # Filter by TEXT role, each item comes with a string of all checked tags
+        self.proxy_model.setFilterRegularExpression(regex)  # Apply filter
 
     def write_tags(self):
         # Placeholder method for writing tags to file
