@@ -122,4 +122,4 @@ def process_results(probs, labels, thresholds):
 
 category_dict = {"rating": 9, "general": 0, "characters": 4}
 thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
-predict(model_path='wd-vit-tagger-v3', categories=category_dict, thresholds=thresh_dict, image_dir=r"C:\Users\khei\Pictures\design")
+predict(model_path='wd-vit-tagger-v3', categories=category_dict, thresholds=thresh_dict, image_dir=r"images")
