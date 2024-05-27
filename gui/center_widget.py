@@ -55,6 +55,7 @@ class CentralWidget(QWidget):
         self.searchbar.setPlaceholderText("  Filter Tags")
         self.searchbar.returnPressed.connect(lambda: self.filter_images(self.searchbar.text()))
         self.clear_btn = QPushButton("Clear Filter")
+        self.clear_btn.clicked.connect(self.clear_filter)
 
         search_box.addWidget(self.searchbar)
         search_box.addWidget(self.clear_btn)
