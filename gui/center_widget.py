@@ -1,3 +1,4 @@
+import json
 import sys
 
 from PyQt5.QtCore import QSize, QRegularExpression, QSortFilterProxyModel, Qt
@@ -68,6 +69,7 @@ class CentralWidget(QWidget):
 
         filter_widget.layout().addLayout(search_box)
         filter_widget.layout().addWidget(self.tag_list)
+        filter_widget.layout().addWidget(self.caption)
 
         # Frame 2   image gallery
         self.image_gallery.clicked.connect(self.update_page)  # on click change image
@@ -94,7 +96,7 @@ class CentralWidget(QWidget):
         buttons_info = [
             ("Predict tags for images", "ICONS/play.png", self.submit),
             ("Write tags to file", "ICONS/WRITE.png", self.write_tags),
-            ("Export tags", "ICONS/EXPORT.png", self.export),
+            ("Export tags", "ICONS/EXPORT.png", self.export_tags),
             ("Move images to folder", "ICONS/MOVE.png", self.move_images),
             ("", "ICONS/GALLERY.png", self.move_images),  # Connect when needed
             ("Settings", "ICONS/SETTINGS.png", self.settings)
@@ -116,26 +118,7 @@ class CentralWidget(QWidget):
         # self.parent().model_folder = dialog.model_input
         # dialog.exec_()
         print("submit clicked")
-        results = {
-            "../images/image1.jpg": {
-                "rating": {"safe": 0.9},
-                "characters": {"cat": 0.8},
-                "general": {"cute": 0.95, "animal": 0.85},
-                "caption": "safe, cat, cute, animal"
-            },
-            "../images/image2.jpg": {
-                "rating": {"safe": 0.95},
-                "characters": {"dog": 0.9},
-                "general": {"cute": 0.75, "animal": 0.65},
-                "caption": "safe, dog, cute, animal"
-            },
-            "../images/image3.jpg": {
-                "rating": {"safe": 0.8},
-                "characters": {"bird": 0.85},
-                "general": {"cute": 0.55, "animal": 0.75},
-                "caption": "safe, bird, cute, animal"
-            }
-        }
+        results = self.import_tags("../results.json")
         self.process_results(results)
 
     def process_results(self, data: dict):
@@ -185,7 +168,7 @@ class CentralWidget(QWidget):
         for category in self.categories.keys():
             tags = self.model.get_tags(filename, category)
             self.update_tags(category, tags, True)
-
+            self.update_caption(item)
 
     def update_tags(self, category, tags, tag_state):
         """ Refreshes the tags in the given checklist"""
@@ -194,11 +177,19 @@ class CentralWidget(QWidget):
         widget = self.tag_display.get(category)
         widget.add_dict(tags, tag_state)
 
+    def update_caption(self, item):
+        self.caption.setText(item.data(role=Qt.UserRole))
+
     def write_tags(self):
         # Placeholder method for writing tags to file
         print("Write tags action triggered")
 
-    def export(self):
+    def import_tags(self, filename):
+        with open(filename, 'r') as infile:
+            results = json.load(infile)
+        return results
+
+    def export_tags(self):
         print("Export tags action triggered")
 
     def move_images(self):
