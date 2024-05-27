@@ -38,7 +38,7 @@ class CentralWidget(QWidget):
         self.search_completer = MultiCompleter()
 
         self.image_gallery = ImageGallery()
-        self.tag_display = TagDisplayWidget(categories=self.categories, thresholds=self.threshold)
+        self.tag_display = TagDisplayWidget(thresholds=self.categories)
 
         self.initUI()
 

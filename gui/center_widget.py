@@ -36,7 +36,7 @@ class CentralWidget(QWidget):
         self.caption = QTextEdit()
 
         self.image_gallery = ImageGallery()
-        self.tag_display = TagDisplayWidget(categories=self.categories, thresholds=self.threshold)
+        self.tag_display = TagDisplayWidget(thresholds=self.categories)
 
         self.initUI()
 
@@ -179,6 +179,11 @@ class CentralWidget(QWidget):
             Qt.UserRole)  # Filter by TEXT role, each item comes with a string of all checked tags
         self.proxy_model.setFilterRegularExpression(regex)  # Apply filter
 
+    def update_tags(self, category, tags, tag_state):
+        """ Refreshes the tags in the given checklist"""
+        if tags is None:
+            return
+        self.tag_display.get
     def write_tags(self):
         # Placeholder method for writing tags to file
         print("Write tags action triggered")
