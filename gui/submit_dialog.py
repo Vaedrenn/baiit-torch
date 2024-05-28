@@ -25,6 +25,9 @@ class ThresholdDialog(QDialog):
         self.model_button = QPushButton("Browse")
         self.dir_button = QPushButton("Browse")
 
+        if self.parent().model_folder:
+            self.model_input.setText(self.parent().model_folder)
+
         self.model_button.clicked.connect(lambda: self.browse_directory(self.model_input))
         self.dir_button.clicked.connect(lambda: self.browse_directory(self.dir_input))
 
@@ -82,6 +85,7 @@ class ThresholdDialog(QDialog):
         # self.model_input.setText("../wd-vit-tagger-v3")
         # self.dir_input.setText("../images")
 
+        self.parent().model_folder = self.model_input.text()  # save model folder
         from predict import predict
         results = predict(model_path=self.model_input.text(),
                           image_dir=self.dir_input.text(),
