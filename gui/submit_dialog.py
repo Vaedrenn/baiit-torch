@@ -1,10 +1,10 @@
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, QLineEdit, QFileDialog
+from PyQt5.QtCore import pyqtSignal
 import sys
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QSlider, QSpinBox, QPushButton, QHBoxLayout, QLabel, \
-    QLineEdit, QGridLayout
-from PyQt5.QtCore import Qt
-
 
 class ThresholdDialog(QDialog):
+    results = pyqtSignal(object)  # Define the signal at the class level
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Set Thresholds')
@@ -14,7 +14,8 @@ class ThresholdDialog(QDialog):
         main_layout = QVBoxLayout()
 
         # Access the thresholds from the parent
-        self.thresholds = self.parent().threshold.items()
+        self.thresholds = self.parent().threshold
+        self.categories = self.parent().categories
         selection_grid = QGridLayout()
 
         self.model_input = QLineEdit()
@@ -24,6 +25,9 @@ class ThresholdDialog(QDialog):
         self.model_button = QPushButton("Browse")
         self.dir_button = QPushButton("Browse")
 
+        self.model_button.clicked.connect(lambda: self.browse_directory(self.model_input))
+        self.dir_button.clicked.connect(lambda: self.browse_directory(self.dir_input))
+
         selection_grid.addWidget(self.model_input, 0, 0)
         selection_grid.addWidget(self.model_button, 0, 1)
         selection_grid.addWidget(self.dir_input, 1, 0)
@@ -32,14 +36,14 @@ class ThresholdDialog(QDialog):
 
         # Add sliders and spinboxes for each threshold
         self.spinboxes = {}
-        for category, value in self.thresholds:
+        for category, value in self.thresholds.items():
             # Create a horizontal layout for the label and spinbox
             h_layout = QHBoxLayout()
             label = QLabel(f'{category} Threshold')
             spinbox = QSpinBox()
             spinbox.setMinimum(0)
             spinbox.setMaximum(100)
-            spinbox.setValue(value)
+            spinbox.setValue(int(value * 100))
             spinbox.setMaximumWidth(50)
 
             h_layout.addWidget(label)
@@ -53,6 +57,7 @@ class ThresholdDialog(QDialog):
         button_layout = QHBoxLayout()
         confirm_button = QPushButton('Confirm')
         confirm_button.clicked.connect(self.accept)
+        confirm_button.clicked.connect(self.submit)
         cancel_button = QPushButton('Cancel')
         cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(confirm_button)
@@ -62,37 +67,53 @@ class ThresholdDialog(QDialog):
 
         self.setLayout(main_layout)
 
+    def browse_directory(self, line_edit):
+        directory = QFileDialog.getExistingDirectory(self, "Select Directory")
+        if directory:
+            line_edit.setText(directory)
 
-class ParentWindow(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('Parent Window')
-        self.threshold = {
-            'General Tags': 50,
-            'Character Tags': 85,
-            'Example Category': 70
-        }
+    def submit(self):
+        # To do: remove test text
+        self.model_input.setText("../wd-vit-tagger-v3")
+        self.dir_input.setText("../images")
+        from predict import predict
+        results = predict(model_path=self.model_input.text(),
+                          image_dir=self.dir_input.text(),
+                          categories=self.categories,
+                          thresholds=self.thresholds)
 
-        open_dialog_button = QPushButton('Open Threshold Dialog')
-        open_dialog_button.clicked.connect(self.open_threshold_dialog)
-
-        layout = QVBoxLayout()
-        layout.addWidget(open_dialog_button)
-        self.setLayout(layout)
-
-    def open_threshold_dialog(self):
-        dialog = ThresholdDialog(self)
-        if dialog.exec_():
-            # Retrieve the updated values from the sliders
-            for category in dialog.sliders:
-                self.threshold[category] = dialog.sliders[category].value()
-            print("Thresholds updated:", self.threshold)
-        else:
-            print("Thresholds update canceled.")
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    main_win = ParentWindow()
-    main_win.show()
-    sys.exit(app.exec_())
+        self.results.emit(results)
+#
+# class ParentWindow(QDialog):
+#     def __init__(self):
+#         super().__init__()
+#         self.setWindowTitle('Parent Window')
+#         self.threshold = {"rating": 0.0, "characters": 0.7, "general": 0.35}  # load from settings
+#         self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
+#
+#         open_dialog_button = QPushButton('Open Threshold Dialog')
+#         open_dialog_button.clicked.connect(self.open_threshold_dialog)
+#
+#         layout = QVBoxLayout()
+#         layout.addWidget(open_dialog_button)
+#         self.setLayout(layout)
+#
+#     def open_threshold_dialog(self):
+#         dialog = ThresholdDialog(self)
+#         dialog.results.connect(self.update_thresholds)
+#         if dialog.exec_():
+#             # Retrieve the updated values from the spinboxes
+#             for category, spinbox in dialog.spinboxes.items():
+#                 self.threshold[category] = spinbox.value() / 100.0
+#             print("Thresholds updated:", self.threshold)
+#         else:
+#             print("Thresholds update canceled.")
+#
+#     def update_thresholds(self, new_thresholds):
+#         print("Thresholds received:", new_thresholds)
+#
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     main_win = ParentWindow()
+#     main_win.show()
+#     sys.exit(app.exec_())
