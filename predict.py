@@ -78,8 +78,8 @@ def predict(model_path: str | os.PathLike,
                 model = model.to("cpu")
 
         for idx, filename in enumerate(filenames):
-            print(f"Processing {filename}...")
-            print(f"Output shape: {outputs[idx].shape}")
+            # print(f"Processing {filename}...")
+            # print(f"Output shape: {outputs[idx].shape}")
             results_tags = process_results(probs=outputs[idx], labels=labels, thresholds=thresholds)
             results[filename] = results_tags
 

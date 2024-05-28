@@ -121,13 +121,14 @@ class CentralWidget(QWidget):
             navbar.layout().addWidget(btn)
 
     def submit(self):
-        # dialog = self.SubmitDialog(self)
-        # dialog.results.connect(lambda x: self.process_results(x))
-        # self.parent().model_folder = dialog.model_input
-        # dialog.exec_()
-        print("submit clicked")
-        results = self.import_tags("../results.json")
-        self.process_results(results)
+        from submit_dialog import ThresholdDialog
+        dialog = ThresholdDialog(parent=self)
+        dialog.results.connect(lambda x: self.process_results(x))
+        dialog.exec_()
+
+        # print("submit clicked")
+        # results = self.import_tags("../results.json")
+        # self.process_results(results)
 
     def process_results(self, data: dict):
         # filename: data
@@ -223,7 +224,7 @@ class CentralWidget(QWidget):
             try:
                 with open(filename, 'r') as infile:
                     results = json.load(infile)
-                QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
+                # QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
                 return results
             except Exception as e:
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
