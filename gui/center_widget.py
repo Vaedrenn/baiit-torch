@@ -214,13 +214,32 @@ class CentralWidget(QWidget):
 
                 img.save(filepath, exif=hex)
 
-    def import_tags(self, filename):
-        with open(filename, 'r') as infile:
-            results = json.load(infile)
-        return results
+    def import_tags(self, filename=None):
+        options = QFileDialog.Options()
+        if filename is None:
+            filename, _ = QFileDialog.getOpenFileName(None, "Import Tags", "", "JSON Files (*.json);;All Files (*)",
+                                                      options=options)
+        if filename:
+            try:
+                with open(filename, 'r') as infile:
+                    results = json.load(infile)
+                QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
+                return results
+            except Exception as e:
+                QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
+                return None
 
     def export_tags(self):
-        print("Export tags action triggered")
+        options = QFileDialog.Options()
+        output_file, _ = QFileDialog.getSaveFileName(None, "Export Tags", "", "JSON Files (*.json);;All Files (*)",
+                                                     options=options)
+        if output_file:
+            try:
+                with open(output_file, 'w') as outfile:
+                    json.dump(self.model.results, outfile, indent=4)
+                QMessageBox.information(None, "Export Successful", f"Tags exported to {output_file}")
+            except Exception as e:
+                QMessageBox.critical(None, "Export Failed", f"An error occurred: {str(e)}")
 
     def move_images(self):
         selected_rows = self.image_gallery.selectedIndexes()
