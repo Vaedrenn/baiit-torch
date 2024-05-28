@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 
 
 class ImageGalleryTableModel(QAbstractTableModel):
@@ -10,6 +10,7 @@ class ImageGalleryTableModel(QAbstractTableModel):
         self.results = results
         self.filenames = list(results.keys())
         self.tags = self.create_filters(results)
+        self.icons = self.create_icons(results)
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.filenames)
@@ -27,7 +28,7 @@ class ImageGalleryTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return filename
         elif role == Qt.DecorationRole:
-            return QIcon(filename)
+            return self.icons[filename]
         elif role == Qt.UserRole:
             return self.results[filename]['caption']
 
@@ -51,3 +52,11 @@ class ImageGalleryTableModel(QAbstractTableModel):
                         tag_counts[tag] += 1
 
         return dict(tag_counts)
+
+    def create_icons(self, results):
+        icons = {}
+        for filename in results.keys():
+            pixmap = QPixmap(filename).scaledToHeight(200, Qt.FastTransformation)
+            ico = QIcon(pixmap)
+            icons[filename] = ico
+        return icons

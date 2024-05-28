@@ -82,7 +82,7 @@ class ThresholdDialog(QDialog):
         self.thresholds[category] = value / 100.0
 
     def submit(self):
-        # self.model_input.setText("../wd-vit-tagger-v3")
+        self.model_input.setText("../wd-vit-tagger-v3")
         # self.dir_input.setText("../images")
 
         self.parent().model_folder = self.model_input.text()  # save model folder
