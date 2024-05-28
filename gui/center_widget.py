@@ -1,11 +1,13 @@
 import json
+import os
+import shutil
 import sys
 
 from PyQt5.QtCore import QSize, QRegularExpression, QSortFilterProxyModel, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
-    QListWidgetItem
+    QListWidgetItem, QMessageBox, QFileDialog
 
 import io
 
@@ -221,8 +223,46 @@ class CentralWidget(QWidget):
         print("Export tags action triggered")
 
     def move_images(self):
-        # Placeholder method for moving images
-        print("Move images action triggered")
+        selected_rows = self.image_gallery.selectedIndexes()
+        num_files = len(selected_rows)
+        if num_files == 0:
+            return
+        # Open directory dialog to select target directory
+        target_dir = QFileDialog.getExistingDirectory(None, "Select Target Directory")
+
+        if target_dir == '':
+            return
+
+        # Create the target directory if it doesn't exist
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
+        # Confirm the move action
+        confirmation = QMessageBox.question(
+            None,
+            "Confirm Move",
+            f"Do you want to move {num_files} files to {target_dir}?",
+            QMessageBox.Ok | QMessageBox.Cancel
+        )
+
+        if confirmation != QMessageBox.Ok:
+            return
+
+        # Move each file to the target directory
+        for f in selected_rows:
+            file_path = f.data()
+            file_name = os.path.basename(file_path)
+            destination_path = os.path.join(target_dir, file_name)
+            shutil.move(file_path, destination_path)
+
+            # update model info after moving
+            self.model.results[destination_path] = self.model.results.pop(file_path)
+            index = self.model.filenames.index(file_path)
+            self.model.filenames[index] = destination_path
+
+        # Deselect all selected rows
+        self.image_gallery.clearSelection()
+        QMessageBox.information(None, "Move Completed", f"Moved {num_files} files to {target_dir}")
 
     def settings(self):
         # Placeholder method for settings
