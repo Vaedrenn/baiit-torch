@@ -46,6 +46,9 @@ class ThresholdDialog(QDialog):
             spinbox.setValue(int(value * 100))
             spinbox.setMaximumWidth(50)
 
+            # Connect the spinbox value change signal to update the threshold
+            spinbox.valueChanged.connect(lambda val, cat=category: self.update_threshold(cat, val))
+
             h_layout.addWidget(label)
             h_layout.addWidget(spinbox)
 
@@ -72,10 +75,13 @@ class ThresholdDialog(QDialog):
         if directory:
             line_edit.setText(directory)
 
+    def update_threshold(self, category, value):
+        self.thresholds[category] = value / 100.0
+
     def submit(self):
-        # To do: remove test text
-        self.model_input.setText("../wd-vit-tagger-v3")
-        self.dir_input.setText("../images")
+        # self.model_input.setText("../wd-vit-tagger-v3")
+        # self.dir_input.setText("../images")
+
         from predict import predict
         results = predict(model_path=self.model_input.text(),
                           image_dir=self.dir_input.text(),
@@ -83,7 +89,7 @@ class ThresholdDialog(QDialog):
                           thresholds=self.thresholds)
 
         self.results.emit(results)
-#
+
 # class ParentWindow(QDialog):
 #     def __init__(self):
 #         super().__init__()

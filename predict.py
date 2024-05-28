@@ -83,10 +83,10 @@ def predict(model_path: str | os.PathLike,
             results_tags = process_results(probs=outputs[idx], labels=labels, thresholds=thresholds)
             results[filename] = results_tags
 
-        torch.cuda.empty_cache()
-    for k,v in results.items():
-        print(k)
-        print(v)
+        # torch.cuda.empty_cache()
+    # for k,v in results.items():
+    #     print(k)
+    #     print(v)
     return results
 
 
@@ -119,7 +119,3 @@ def process_results(probs, labels, thresholds):
 
     return processed
 
-
-category_dict = {"rating": 9, "general": 0, "characters": 4}
-thresh_dict = {"rating": 0.0, "general": 0.35, "characters": 7}
-predict(model_path='wd-vit-tagger-v3', categories=category_dict, thresholds=thresh_dict, image_dir=r"images")
