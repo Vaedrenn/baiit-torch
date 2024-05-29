@@ -140,16 +140,19 @@ class CentralWidget(QWidget):
             formatted_tag = f"{count:>4}  {tag}"
             self.tag_list.addItem(QListWidgetItem(formatted_tag))
 
-    def filter_images(self):
+    def filter_images(self, text=None):
         # Get all tags and remove (number)
         selected_tags = [
             item.text().split(maxsplit=1)[1].strip()
             for item in self.tag_list.selectedItems()
         ]
-        if not selected_tags:
+        if not selected_tags and text is None:
             # Clear filter if no tags are selected
             self.proxy_model.setFilterRegularExpression(QRegularExpression())
             return
+
+        tags = [tag.strip() for tag in text.split(",")]
+        selected_tags.extend(tags)
 
         regex_pattern = "(?=.*{})".format(")(?=.*".join(selected_tags))  # Regex for selecting things with all tags
 
@@ -165,6 +168,7 @@ class CentralWidget(QWidget):
         clears filters
         """
         self.tag_list.clearSelection()
+        self.searchbar.clear()
         # Create QRegularExpression object
         regex = QRegularExpression('', QRegularExpression.CaseInsensitiveOption)
 
@@ -277,6 +281,7 @@ class CentralWidget(QWidget):
 
             # update model info after moving
             self.model.results[destination_path] = self.model.results.pop(file_path)
+            self.model.icons[destination_path] = self.model.icons.pop(file_path)
             index = self.model.filenames.index(file_path)
             self.model.filenames[index] = destination_path
 
