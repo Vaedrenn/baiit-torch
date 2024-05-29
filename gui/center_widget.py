@@ -205,9 +205,8 @@ class CentralWidget(QWidget):
         print("Write tags action triggered")
         selected_rows = self.image_gallery.selectedIndexes()
         for row in selected_rows:
-            item = self.image_gallery.item(row)
-            text = item.data(Qt.UserRole)
-            filepath = item.data(Qt.DisplayRole)
+            filepath = self.model.data(row)
+            text = self.model.data(row, role=Qt.UserRole)
 
             with Image.open(filepath) as img:
                 ifd = ImageFileDirectory_v2()
