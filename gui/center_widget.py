@@ -233,14 +233,27 @@ class CentralWidget(QWidget):
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
                 return None
 
+    def _tensor_to_json(self, obj):
+        from torch import Tensor
+        if isinstance(obj, Tensor):
+            return obj.tolist()  # Convert tensor to list
+        elif isinstance(obj, dict):
+            return {k: self._tensor_to_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._tensor_to_json(i) for i in obj]
+        else:
+            return obj
+
     def export_tags(self):
         options = QFileDialog.Options()
         output_file, _ = QFileDialog.getSaveFileName(None, "Export Tags", "", "JSON Files (*.json);;All Files (*)",
                                                      options=options)
         if output_file:
             try:
+                # Convert results to a serializable format
+                serializable_results = self._tensor_to_json(self.model.results)
                 with open(output_file, 'w') as outfile:
-                    json.dump(self.model.results, outfile, indent=4)
+                    json.dump(serializable_results, outfile, indent=4)
                 QMessageBox.information(None, "Export Successful", f"Tags exported to {output_file}")
             except Exception as e:
                 QMessageBox.critical(None, "Export Failed", f"An error occurred: {str(e)}")
