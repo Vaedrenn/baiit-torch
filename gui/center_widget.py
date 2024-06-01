@@ -7,7 +7,7 @@ from PyQt5.QtCore import QSize, QRegularExpression, QSortFilterProxyModel, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
-    QListWidgetItem, QMessageBox, QFileDialog
+    QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate
 
 import io
 
@@ -70,14 +70,16 @@ class CentralWidget(QWidget):
         search_box.addWidget(self.clear_btn)
 
         self.tag_list.setSelectionMode(QListWidget.MultiSelection)  # Toggle style selection
-        self.tag_list.itemClicked.connect(self.filter_images)  # on click filter
+        self.tag_list.itemClicked.connect(lambda: self.filter_images(self.searchbar.text()))  # on click filter
+        tag_delegate = TagListItemDelegate()
+        self.tag_list.setItemDelegate(tag_delegate)
 
         self.caption.setReadOnly(True)
         self.caption.setMaximumHeight(200)
 
         filter_widget.layout().addLayout(search_box)
         filter_widget.layout().addWidget(self.tag_list)
-        filter_widget.layout().addWidget(self.caption)
+        # filter_widget.layout().addWidget(self.caption)
 
         # Frame 2   image gallery
         self.image_gallery.clicked.connect(self.update_page)  # on click change image
@@ -121,14 +123,15 @@ class CentralWidget(QWidget):
             navbar.layout().addWidget(btn)
 
     def submit(self):
-        from submit_dialog import ThresholdDialog
-        dialog = ThresholdDialog(parent=self)
-        dialog.results.connect(lambda x: self.process_results(x))
-        dialog.exec_()
+        # from submit_dialog import ThresholdDialog
+        # dialog = ThresholdDialog(parent=self)
+        # dialog.results.connect(lambda x: self.process_results(x))
+        # dialog.exec_()
+        results = self.import_tags("../results.json")
+        self.process_results(results)
 
-        # print("submit clicked")
-        # results = self.import_tags("../results.json")
-        # self.process_results(results)
+        self.search_completer = MultiCompleter(self.model.tags.keys())
+        self.searchbar.setCompleter(self.search_completer)
 
     def process_results(self, data: dict):
         # filename: data
@@ -150,9 +153,9 @@ class CentralWidget(QWidget):
             # Clear filter if no tags are selected
             self.proxy_model.setFilterRegularExpression(QRegularExpression())
             return
-
-        tags = [tag.strip() for tag in text.split(",")]
-        selected_tags.extend(tags)
+        if text != "" and text is not None:
+            tags = [tag.strip() for tag in text.split(",")]
+            selected_tags.extend(tags)
 
         regex_pattern = "(?=.*{})".format(")(?=.*".join(selected_tags))  # Regex for selecting things with all tags
 
@@ -263,9 +266,7 @@ class CentralWidget(QWidget):
         num_files = len(selected_rows)
         if num_files == 0:
             return
-        # Open directory dialog to select target directory
         target_dir = QFileDialog.getExistingDirectory(None, "Select Target Directory")
-
         if target_dir == '':
             return
 
@@ -273,7 +274,6 @@ class CentralWidget(QWidget):
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
 
-        # Confirm the move action
         confirmation = QMessageBox.question(
             None,
             "Confirm Move",
@@ -305,6 +305,38 @@ class CentralWidget(QWidget):
         # Placeholder method for settings
         print("Settings action triggered")
 
+
+class MultiCompleter(QCompleter):
+    """ Multi Tag completer, allows for comma separated tag searching"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # self.setMaxVisibleItems(5)
+
+    def pathFromIndex(self, index):
+        path = super().pathFromIndex(index)
+
+        lst = str(self.widget().text()).split(', ')
+        if len(lst) > 1:
+            path = ', '.join(lst[:-1]) + ', ' + path
+
+        return path
+
+    def splitPath(self, path):
+        return [path.split(',')[-1].strip()]
+
+
+class TagListItemDelegate(QStyledItemDelegate):
+    """ Custom delegate for displaying larger item with larger text"""
+
+    def sizeHint(self, option, index):
+        # Customize the size of items
+        return QSize(100, 25)  # Adjust the width and height as needed
+
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        # Customize the font size of the item text
+        option.font.setPointSize(12)  # Adjust the font size as needed
 
 if __name__ == "__main__":
     # Qt Application
