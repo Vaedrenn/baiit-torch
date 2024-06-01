@@ -83,10 +83,11 @@ def predict(model_path: str | os.PathLike,
             results_tags = process_results(probs=outputs[idx], labels=labels, thresholds=thresholds)
             results[filename] = results_tags
 
-        # torch.cuda.empty_cache()
     # for k,v in results.items():
     #     print(k)
     #     print(v)
+    del model
+    torch.cuda.empty_cache()
     return results
 
 
