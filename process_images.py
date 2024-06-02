@@ -26,14 +26,14 @@ class Runnable(QRunnable):
     def run(self):
         try:
             # Model only supports 3 channels
-            image = Image.open(self.image_path).convert('RGB')
+            with Image.open(self.image_path).convert('RGB') as image:
 
-            # Pad image to square
-            w, h = image.size
-            px = max(image.size)
-            # pad to square with white background
-            canvas = Image.new("RGB", (px, px), (255, 255, 255))
-            canvas.paste(image, ((px - w) // 2, (px - h) // 2))
+                # Pad image to square
+                w, h = image.size
+                px = max(image.size)
+                # pad to square with white background
+                canvas = Image.new("RGB", (px, px), (255, 255, 255))
+                canvas.paste(image, ((px - w) // 2, (px - h) // 2))
 
             image_array = self.transform(canvas).unsqueeze(0)
             image_array = image_array[:, [2, 1, 0]]
@@ -58,9 +58,9 @@ def process_images_from_directory(model_path: str, directory: str, transform) ->
     pool = QThreadPool.globalInstance()
 
     # get dimensions from model
-    config_file = open(os.path.join(model_path, "config.json"))
+    with open(os.path.join(model_path, "config.json")) as config_file:
+        configs = json.load(config_file)
 
-    configs = json.load(config_file)
     _, height, width = configs['pretrained_cfg']['input_size']
 
     size = (height, width)

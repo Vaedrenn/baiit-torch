@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
 class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.threshold = {"rating": 0.0, "characters": 0.7, "general": 0.35}  # load from settings
+        self.threshold = {"rating": 0.5, "characters": 0.7, "general": 0.35}  # load from settings
         self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
         self.model = None
         self.model_folder = None  # cache

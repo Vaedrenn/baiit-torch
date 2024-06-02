@@ -9,8 +9,8 @@ class ImageGalleryTableModel(QAbstractTableModel):
         super(ImageGalleryTableModel, self).__init__(parent)
         self.results = results
         self.filenames = list(results.keys())
-        self.tags = self.create_filters(results)
-        self.icons = self.create_icons(results)
+        self.tags = create_filters(results)
+        self.icons = create_icons(results)
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.filenames)
@@ -37,26 +37,28 @@ class ImageGalleryTableModel(QAbstractTableModel):
     def get_tags(self, filename, category):
         return self.results[filename][category]
 
-    def create_filters(self, results):
-        """
-        Creates a dictionary of all tags and the count of each tag: {'safe': 3, 'house': 4, 'cafe': 2 }
-        :param results:
-        :return: tags
-        """
-        tag_counts = defaultdict(int)
 
-        for image_data in results.values():
-            for category, tags in image_data.items():
-                if category not in ['caption', 'taglist']:  # Exclude caption and taglist
-                    for tag in tags.keys():
-                        tag_counts[tag] += 1
+def create_filters(results):
+    """
+    Creates a dictionary of all tags and the count of each tag: {'safe': 3, 'house': 4, 'cafe': 2 }
+    :param results:
+    :return: tags
+    """
+    tag_counts = defaultdict(int)
 
-        return dict(tag_counts)
+    for image_data in results.values():
+        for category, tags in image_data.items():
+            if category not in ['caption', 'taglist']:  # Exclude caption and taglist
+                for tag in tags.keys():
+                    tag_counts[tag] += 1
 
-    def create_icons(self, results):
-        icons = {}
-        for filename in results.keys():
-            pixmap = QPixmap(filename).scaledToHeight(200, Qt.FastTransformation)
-            ico = QIcon(pixmap)
-            icons[filename] = ico
-        return icons
+    return dict(tag_counts)
+
+
+def create_icons(results):
+    icons = {}
+    for filename in results.keys():
+        pixmap = QPixmap(filename).scaledToHeight(200, Qt.FastTransformation)
+        ico = QIcon(pixmap)
+        icons[filename] = ico
+    return icons
