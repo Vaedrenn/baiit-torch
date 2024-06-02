@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Any, Dict, List
 
 import numpy as np
@@ -64,18 +65,12 @@ def predict(model_path: str | os.PathLike,
             raise ValueError(f"Expected img_tensors to have 4 dimensions (batch_size, channels, height, width), but got {img_tensors.shape}")
 
         with torch.inference_mode():
-            if device.type != "cpu":
-                model = model.to(device)
-                img_tensors = img_tensors.to(device)
-                # run the model
             outputs = model.forward(img_tensors)
             # apply the final activation function (timm doesn't support doing this internally)
             outputs = torch.nn.functional.sigmoid(outputs)
             # move inputs, outputs, and model back to cpu if we were on GPU
             if device.type != "cpu":
-                img_tensors = img_tensors.to("cpu")
                 outputs = outputs.to("cpu")
-                model = model.to("cpu")
 
         for idx, filename in enumerate(filenames):
             # print(f"Processing {filename}...")
@@ -83,10 +78,14 @@ def predict(model_path: str | os.PathLike,
             results_tags = process_results(probs=outputs[idx], labels=labels, thresholds=thresholds)
             results[filename] = results_tags
 
+        if device != "cpu":
+            img_tensors.to("cpu")
+
     # for k,v in results.items():
     #     print(k)
     #     print(v)
-    del model
+    if device != "cpu":
+        model.to("cpu")
     torch.cuda.empty_cache()
     return results
 
