@@ -15,10 +15,10 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL.TiffImagePlugin import ImageFileDirectory_v2
 
-from categories import TagDisplayWidget
+from gui.categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
 from gui.gallery_model import ImageGalleryTableModel
-from image_gallery import ImageGallery
+from gui.image_gallery import ImageGallery
 
 
 class MainWindow(QMainWindow):
@@ -104,12 +104,12 @@ class CentralWidget(QWidget):
 
     def add_buttons_to_navbar(self, navbar):
         buttons_info = [
-            ("Predict tags for images", "ICONS/play.png", self.submit),
-            ("Write tags to file", "ICONS/WRITE.png", self.write_tags),
-            ("Export tags", "ICONS/EXPORT.png", self.export_tags),
-            ("Move images to folder", "ICONS/MOVE.png", self.move_images),
-            ("", "ICONS/GALLERY.png", self.move_images),  # Connect when needed
-            ("Settings", "ICONS/SETTINGS.png", self.settings)
+            ("Predict tags for images", "gui/ICONS/play.png", self.submit),
+            ("Write tags to file", "gui/ICONS/WRITE.png", self.write_tags),
+            ("Export tags", "gui/ICONS/EXPORT.png", self.export_tags),
+            ("Move images to folder", "gui/ICONS/MOVE.png", self.move_images),
+            ("", "gui/ICONS/GALLERY.png", self.move_images),  # Connect when needed
+            ("Settings", "gui/ICONS/SETTINGS.png", self.settings)
         ]
 
         for tooltip, icon_path, callback in buttons_info:
@@ -123,25 +123,34 @@ class CentralWidget(QWidget):
             navbar.layout().addWidget(btn)
 
     def submit(self):
-        # from submit_dialog import ThresholdDialog
-        # dialog = ThresholdDialog(parent=self)
-        # dialog.results.connect(lambda x: self.process_results(x))
-        # dialog.exec_()
-        results = self.import_tags("../results.json")
-        self.process_results(results)
-
-        self.search_completer = MultiCompleter(self.model.tags.keys())
-        self.searchbar.setCompleter(self.search_completer)
+        from gui.submit_dialog import ThresholdDialog
+        dialog = ThresholdDialog(parent=self)
+        dialog.results.connect(lambda x: self.process_results(x))
+        dialog.exec_()
+        # results = self.import_tags("results.json")
+        # self.process_results(results)
 
     def process_results(self, data: dict):
-        # filename: data
+        if data is None:
+            return
+        if hasattr(self, 'model') and self.model is not None:
+            self.model.deleteLater()  # Delete the old model to free up memory
+            self.model = None  # Immediately set it to None to avoid issues
+
+        # Create and assign model
         self.model = ImageGalleryTableModel(data)
         self.proxy_model.setSourceModel(self.model)
         self.image_gallery.setModel(self.proxy_model)
+
+        # Add tags to filter list
         self.tag_list.clear()
         for tag, count in sorted(self.model.tags.items(), key=lambda item: item[1], reverse=True):
             formatted_tag = f"{count:>4}  {tag}"
             self.tag_list.addItem(QListWidgetItem(formatted_tag))
+
+        # Assign Completer
+        self.search_completer = MultiCompleter(self.model.tags.keys())
+        self.searchbar.setCompleter(self.search_completer)
 
     def filter_images(self, text=None):
         # Get all tags and remove (number)
@@ -291,7 +300,7 @@ class CentralWidget(QWidget):
             destination_path = os.path.join(target_dir, file_name)
             shutil.move(file_path, destination_path)
 
-            # update model info after moving
+            # update model info after moving, idk if I should remove this option
             self.model.results[destination_path] = self.model.results.pop(file_path)
             self.model.icons[destination_path] = self.model.icons.pop(file_path)
             index = self.model.filenames.index(file_path)
