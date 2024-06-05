@@ -4,10 +4,10 @@ import shutil
 import sys
 
 from PyQt5.QtCore import QSize, QRegularExpression, QSortFilterProxyModel, Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
-    QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate
+    QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate, QStackedWidget, QSizePolicy, QLabel
 
 import io
 
@@ -82,6 +82,12 @@ class CentralWidget(QWidget):
         # filter_widget.layout().addWidget(self.caption)
 
         # Frame 2   image gallery
+        self.image_label = QLabel()
+        pixmap = QPixmap(450, 450)
+        pixmap.fill(Qt.lightGray)  # Fill the pixmap with a white color
+        self.image_label.setPixmap(pixmap)
+
+
         self.image_gallery.clicked.connect(self.update_page)  # on click change image
 
         # Frame 3   tag display, shows all tags related to image separated into their respective categories
@@ -108,7 +114,7 @@ class CentralWidget(QWidget):
             ("Write tags to file", "gui/ICONS/WRITE.png", self.write_tags),
             ("Export tags", "gui/ICONS/EXPORT.png", self.export_tags),
             ("Move images to folder", "gui/ICONS/MOVE.png", self.move_images),
-            ("", "gui/ICONS/GALLERY.png", self.move_images),  # Connect when needed
+            ("Import tags", "gui/ICONS/GALLERY.png", self.import_tags),
             ("Settings", "gui/ICONS/SETTINGS.png", self.settings)
         ]
 
@@ -127,8 +133,6 @@ class CentralWidget(QWidget):
         dialog = ThresholdDialog(parent=self)
         dialog.results.connect(lambda x: self.process_results(x))
         dialog.exec_()
-        # results = self.import_tags("results.json")
-        # self.process_results(results)
 
     def process_results(self, data: dict):
         if data is None:
@@ -230,17 +234,17 @@ class CentralWidget(QWidget):
 
                 img.save(filepath, exif=hex)
 
-    def import_tags(self, filename=None):
+    def import_tags(self):
         options = QFileDialog.Options()
-        if filename is None:
-            filename, _ = QFileDialog.getOpenFileName(None, "Import Tags", "", "JSON Files (*.json);;All Files (*)",
+        filename, _ = QFileDialog.getOpenFileName(None, "Import Tags", "", "JSON Files (*.json);;All Files (*)",
                                                       options=options)
         if filename:
             try:
                 with open(filename, 'r') as infile:
                     results = json.load(infile)
+                    self.process_results(results)
                 # QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
-                return results
+                return True
             except Exception as e:
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
                 return None

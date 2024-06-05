@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, QLineEdit, QFileDialog
-from PyQt5.QtCore import pyqtSignal
-import sys
+from PyQt5.QtCore import pyqtSignal, QThread, pyqtSlot
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, \
+    QLineEdit, QFileDialog
+
 
 class ThresholdDialog(QDialog):
     results = pyqtSignal(object)  # Define the signal at the class level
@@ -89,44 +90,39 @@ class ThresholdDialog(QDialog):
             self.dir_input.setText("images")
 
         self.parent().model_folder = self.model_input.text()  # save model folder
-        from predict import predict
-        results = predict(model_path=self.model_input.text(),
-                          image_dir=self.dir_input.text(),
-                          categories=self.categories,
-                          thresholds=self.thresholds)
 
+        # Spawn a new thread for the predict function
+        self.thread = PredictThread(parent=self,
+                                    model_path=self.model_input.text(),
+                                    image_dir=self.dir_input.text(),
+                                    categories=self.categories,
+                                    thresholds=self.thresholds)
+        self.thread.results.connect(self.handle_results)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
+
+    @pyqtSlot(object)
+    def handle_results(self, results):
+        print("handle results called")
+        print(results)
         self.results.emit(results)
 
-# class ParentWindow(QDialog):
-#     def __init__(self):
-#         super().__init__()
-#         self.setWindowTitle('Parent Window')
-#         self.threshold = {"rating": 0.0, "characters": 0.7, "general": 0.35}  # load from settings
-#         self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
-#
-#         open_dialog_button = QPushButton('Open Threshold Dialog')
-#         open_dialog_button.clicked.connect(self.open_threshold_dialog)
-#
-#         layout = QVBoxLayout()
-#         layout.addWidget(open_dialog_button)
-#         self.setLayout(layout)
-#
-#     def open_threshold_dialog(self):
-#         dialog = ThresholdDialog(self)
-#         dialog.results.connect(self.update_thresholds)
-#         if dialog.exec_():
-#             # Retrieve the updated values from the spinboxes
-#             for category, spinbox in dialog.spinboxes.items():
-#                 self.threshold[category] = spinbox.value() / 100.0
-#             print("Thresholds updated:", self.threshold)
-#         else:
-#             print("Thresholds update canceled.")
-#
-#     def update_thresholds(self, new_thresholds):
-#         print("Thresholds received:", new_thresholds)
-#
-# if __name__ == '__main__':
-#     app = QApplication(sys.argv)
-#     main_win = ParentWindow()
-#     main_win.show()
-#     sys.exit(app.exec_())
+
+class PredictThread(QThread):
+    results = pyqtSignal(object)
+
+    def __init__(self, parent, model_path, image_dir, categories, thresholds):
+        super().__init__()
+        self.model_path = model_path
+        self.image_dir = image_dir
+        self.categories = categories
+        self.thresholds = thresholds
+        self.parent = parent
+
+    def run(self):
+        from predict import predict
+        results = predict(model_path=self.model_path,
+                          image_dir=self.image_dir,
+                          categories=self.categories,
+                          thresholds=self.thresholds)
+        self.parent.results.emit(results)

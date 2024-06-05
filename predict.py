@@ -1,5 +1,5 @@
+import gc
 import os
-import sys
 from typing import Any, Dict, List
 
 import numpy as np
@@ -68,24 +68,19 @@ def predict(model_path: str | os.PathLike,
             outputs = model.forward(img_tensors)
             # apply the final activation function (timm doesn't support doing this internally)
             outputs = torch.nn.functional.sigmoid(outputs)
-            # move inputs, outputs, and model back to cpu if we were on GPU
-            if device.type != "cpu":
-                outputs = outputs.to("cpu")
+
+            # move outputs back to cpu
+            outputs = outputs.cpu()
 
         for idx, filename in enumerate(filenames):
-            # print(f"Processing {filename}...")
-            # print(f"Output shape: {outputs[idx].shape}")
             results_tags = process_results(probs=outputs[idx], labels=labels, thresholds=thresholds)
             results[filename] = results_tags
 
-        if device != "cpu":
-            img_tensors.to("cpu")
+        # Move tensors to CPU and explicitly delete them to free GPU memory
+        img_tensors.cpu()
+        torch.cuda.empty_cache()
 
-    # for k,v in results.items():
-    #     print(k)
-    #     print(v)
-    if device != "cpu":
-        model.to("cpu")
+    model.cpu()
     torch.cuda.empty_cache()
     return results
 
@@ -118,4 +113,3 @@ def process_results(probs, labels, thresholds):
     processed['taglist'] = tag_list
 
     return processed
-

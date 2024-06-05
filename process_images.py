@@ -2,7 +2,6 @@ import json
 import os
 
 import numpy as np
-import torch
 from PIL import Image
 from PyQt5.QtCore import QThreadPool, QRunnable
 
@@ -35,10 +34,10 @@ class Runnable(QRunnable):
                 canvas = Image.new("RGB", (px, px), (255, 255, 255))
                 canvas.paste(image, ((px - w) // 2, (px - h) // 2))
 
-            image_array = self.transform(canvas).unsqueeze(0)
-            image_array = image_array[:, [2, 1, 0]]
+                image_array = self.transform(canvas).unsqueeze(0)
+                image_array = image_array[:, [2, 1, 0]]
 
-            self.preprocessed_images.append((self.image_path, image_array))
+                self.preprocessed_images.append((self.image_path, image_array))
 
         except Exception as e:
             print(f"Runnable Error processing {self.image_path}: {e}")
