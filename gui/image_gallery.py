@@ -47,7 +47,7 @@ class ImageGallery(QListView):
         extra_space = available_width - (num_columns * icon_size)
         new_spacing = max(0, extra_space // (num_columns + 1))  # +1 for the space before the 1st item
 
-        new_grid_size = QSize(icon_size + new_spacing, 220)  # evenly distribute extra space
+        new_grid_size = QSize(icon_size + new_spacing, 225)  # evenly distribute extra space
         self.setGridSize(new_grid_size)
 
 
