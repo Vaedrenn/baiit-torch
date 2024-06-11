@@ -1,19 +1,18 @@
+import io
 import json
 import os
 import shutil
 import sys
-
-from PyQt5.QtCore import QSize, QRegularExpression, QSortFilterProxyModel, Qt
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
-    QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
-    QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate, QStackedWidget, QSizePolicy, QLabel
-
-import io
+import time
 
 from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL.TiffImagePlugin import ImageFileDirectory_v2
+from PyQt5.QtCore import QSize, QRegularExpression, Qt
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
+    QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
+    QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate, QLabel
 
 from gui.categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
@@ -36,7 +35,6 @@ class CentralWidget(QWidget):
         self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
         self.model = None
         self.model_folder = None  # cache
-        self.proxy_model = QSortFilterProxyModel()
 
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
@@ -86,7 +84,6 @@ class CentralWidget(QWidget):
         pixmap = QPixmap(450, 450)
         pixmap.fill(Qt.lightGray)  # Fill the pixmap with a white color
         self.image_label.setPixmap(pixmap)
-
 
         self.image_gallery.clicked.connect(self.update_page)  # on click change image
 
@@ -142,9 +139,10 @@ class CentralWidget(QWidget):
             self.model = None  # Immediately set it to None to avoid issues
 
         # Create and assign model
+        start = time.time()
         self.model = ImageGalleryTableModel(data)
-        self.proxy_model.setSourceModel(self.model)
-        self.image_gallery.setModel(self.proxy_model)
+        end = time.time()
+        self.image_gallery.setModel(self.model)
 
         # Add tags to filter list
         self.tag_list.clear()
@@ -157,40 +155,24 @@ class CentralWidget(QWidget):
         self.searchbar.setCompleter(self.search_completer)
 
     def filter_images(self, text=None):
-        # Get all tags and remove (number)
+
+        # Get all tags selected from the tag list and remove (number)
         selected_tags = [
             item.text().split(maxsplit=1)[1].strip()
             for item in self.tag_list.selectedItems()
         ]
-        if not selected_tags and text is None:
-            # Clear filter if no tags are selected
-            self.proxy_model.setFilterRegularExpression(QRegularExpression())
-            return
-        if text != "" and text is not None:
+        if text:
             tags = [tag.strip() for tag in text.split(",")]
             selected_tags.extend(tags)
-
-        regex_pattern = "(?=.*{})".format(")(?=.*".join(selected_tags))  # Regex for selecting things with all tags
-
-        # Create QRegularExpression object
-        regex = QRegularExpression(regex_pattern, QRegularExpression.CaseInsensitiveOption)
-
-        self.proxy_model.setFilterRole(
-            Qt.UserRole)  # Filter by UserRole, each item comes with a string of all checked tags
-        self.proxy_model.setFilterRegularExpression(regex)  # Apply filter
+        if not selected_tags:
+            self.model.filter(None)
+        else:
+            self.model.filter(selected_tags)
 
     def clear_filter(self):
-        """
-        clears filters
-        """
         self.tag_list.clearSelection()
         self.searchbar.clear()
-        # Create QRegularExpression object
-        regex = QRegularExpression('', QRegularExpression.CaseInsensitiveOption)
-
-        self.proxy_model.setFilterRole(
-            Qt.UserRole)  # Filter by TEXT role, each item comes with a string of all checked tags
-        self.proxy_model.setFilterRegularExpression(regex)  # Apply filter
+        self.model.filter(None)
 
     def update_page(self, item):
         filename = item.data()
@@ -237,7 +219,7 @@ class CentralWidget(QWidget):
     def import_tags(self):
         options = QFileDialog.Options()
         filename, _ = QFileDialog.getOpenFileName(None, "Import Tags", "", "JSON Files (*.json);;All Files (*)",
-                                                      options=options)
+                                                  options=options)
         if filename:
             try:
                 with open(filename, 'r') as infile:
@@ -350,6 +332,7 @@ class TagListItemDelegate(QStyledItemDelegate):
         super().initStyleOption(option, index)
         # Customize the font size of the item text
         option.font.setPointSize(12)  # Adjust the font size as needed
+
 
 if __name__ == "__main__":
     # Qt Application
