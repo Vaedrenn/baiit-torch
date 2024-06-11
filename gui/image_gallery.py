@@ -1,9 +1,8 @@
 import os
 
-from PyQt5.QtCore import Qt, QSize, QUrl, QRect
+from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QDesktopServices, QFontMetrics
-from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QApplication, \
-    QStyleOptionViewItem, QToolTip
+from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QStyleOptionViewItem
 
 
 class ImageGallery(QListView):

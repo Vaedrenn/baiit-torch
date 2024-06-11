@@ -8,7 +8,7 @@ import time
 from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL.TiffImagePlugin import ImageFileDirectory_v2
-from PyQt5.QtCore import QSize, QRegularExpression, Qt
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \

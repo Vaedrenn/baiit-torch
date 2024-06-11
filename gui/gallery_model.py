@@ -33,7 +33,6 @@ class ImageGalleryTableModel(QAbstractListModel):
             return QVariant()
 
         row = index.row()
-        # filename = self.filtered_state.iloc[row]['filename']
         filename = self.filtered_filenames[row]
         end = time.time()
         print(f"data:", end - start)
