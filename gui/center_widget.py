@@ -134,7 +134,10 @@ class CentralWidget(QWidget):
             return
         if hasattr(self, 'model') and self.model is not None:
             self.model.deleteLater()  # Delete the old model to free up memory
+            self.tag_model.deleteLater()  # Delete the old model to free up memory
             self.model = None  # Immediately set it to None to avoid issues
+            self.tag_model = None
+            self.tag_list.selected_items.clear()
 
         # Create and assign model
         self.model = ImageGalleryTableModel(data)
@@ -158,7 +161,7 @@ class CentralWidget(QWidget):
             selected_tags.extend(tags)
         if not selected_tags:
             self.model.filter(None)
-            self.tag_model.reset()
+            self.tag_model.default()
         else:
             self.model.filter(selected_tags)
 
@@ -166,7 +169,7 @@ class CentralWidget(QWidget):
         self.tag_list.clearSelection()
         self.searchbar.clear()
         self.model.filter(None)
-        self.tag_model.reset()
+        self.tag_model.default()
 
     def update_page(self, item):
         filename = item.data()

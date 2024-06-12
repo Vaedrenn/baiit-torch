@@ -39,7 +39,7 @@ class TagListModel(QAbstractListModel):
         self.filtered_tags = list(tag_counts.items())
         self.layoutChanged.emit()
 
-    def reset(self):
+    def default(self):
         tag_counts = self.other_model.state.drop(columns=['filename']).sum()
         tag_counts = tag_counts.sort_values(ascending=False)
         tag_counts = tag_counts.to_dict()
