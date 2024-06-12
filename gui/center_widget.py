@@ -170,6 +170,7 @@ class CentralWidget(QWidget):
         self.searchbar.clear()
         self.model.filter(None)
         self.tag_model.default()
+        self.tag_list.selected_items.clear()
 
     def update_page(self, item):
         filename = item.data()
