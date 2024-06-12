@@ -15,7 +15,7 @@ class ImageGalleryTableModel(QAbstractListModel):
         self.tags = None  # df of tags and count
         self.state = None  # df of tag state
         self.filtered_filenames = self.filenames  # Use this instead of state to avoid extreme data population times
-        self.filtered_state = None
+        self.filtered_state = self.state
         self.icons = {}
 
         self.state, self.tags = build_table(results)
@@ -25,17 +25,14 @@ class ImageGalleryTableModel(QAbstractListModel):
         self.icon_thread.start()
 
     def rowCount(self, parent=QModelIndex()):
-        return self.filtered_state.shape[0]
+        return len(self.filtered_filenames)
 
     def data(self, index, role=Qt.DisplayRole):
-        start = time.time()
         if not index.isValid():
             return QVariant()
 
         row = index.row()
         filename = self.filtered_filenames[row]
-        end = time.time()
-        print(f"data:", end - start)
         if role == Qt.DisplayRole:
             return filename
         elif role == Qt.DecorationRole:
@@ -57,12 +54,15 @@ class ImageGalleryTableModel(QAbstractListModel):
 
         """Filter for filenames results where tags are true"""
         if not tags:
-            self.filtered_state = self.state
             self.filtered_filenames = self.filenames
         else:
-            mask = self.state[tags].all(axis=1)
-            self.filtered_state = self.state[mask]
-            self.filtered_filenames = self.filtered_state.loc[:, "filename"].tolist()
+            print("tags: ", tags)
+            try:
+                mask = self.state[tags].all(axis=1)
+                self.filtered_state = self.state[mask]
+                self.filtered_filenames = self.filtered_state.loc[:, "filename"].tolist()
+            except KeyError:
+                self.filtered_filenames = []
         self.layoutChanged.emit()
 
 

@@ -18,6 +18,7 @@ from gui.categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
 from gui.gallery_model import ImageGalleryTableModel
 from gui.image_gallery import ImageGallery
+from gui.taglist_model import TagList, TagListModel
 
 
 class MainWindow(QMainWindow):
@@ -35,11 +36,12 @@ class CentralWidget(QWidget):
         self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
         self.model = None
         self.model_folder = None  # cache
+        self.tag_model = None
 
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
         self.clear_btn = QPushButton()
-        self.tag_list = QListWidget()
+        self.tag_list = TagList()
         self.caption = QTextEdit()
 
         self.image_gallery = ImageGallery()
@@ -67,12 +69,8 @@ class CentralWidget(QWidget):
         search_box.addWidget(self.searchbar)
         search_box.addWidget(self.clear_btn)
 
-        self.tag_list.setSelectionMode(QListWidget.MultiSelection)  # Toggle style selection
         self.tag_list.itemClicked.connect(lambda: self.filter_images(self.searchbar.text()))  # on click filter
-        tag_delegate = TagListItemDelegate()
-        self.tag_list.setItemDelegate(tag_delegate)
 
-        self.caption.setReadOnly(True)
         self.caption.setMaximumHeight(200)
 
         filter_widget.layout().addLayout(search_box)
@@ -139,16 +137,12 @@ class CentralWidget(QWidget):
             self.model = None  # Immediately set it to None to avoid issues
 
         # Create and assign model
-        start = time.time()
         self.model = ImageGalleryTableModel(data)
-        end = time.time()
         self.image_gallery.setModel(self.model)
 
         # Add tags to filter list
-        self.tag_list.clear()
-        for tag, count in sorted(self.model.tags.items(), key=lambda item: item[1], reverse=True):
-            formatted_tag = f"{count:>4}  {tag}"
-            self.tag_list.addItem(QListWidgetItem(formatted_tag))
+        self.tag_model = TagListModel(self.model)
+        self.tag_list.setModel(self.tag_model)
 
         # Assign Completer
         self.search_completer = MultiCompleter(self.model.tags.keys())
@@ -158,8 +152,8 @@ class CentralWidget(QWidget):
 
         # Get all tags selected from the tag list and remove (number)
         selected_tags = [
-            item.text().split(maxsplit=1)[1].strip()
-            for item in self.tag_list.selectedItems()
+            item.data(role=Qt.UserRole+1)
+            for item in self.tag_list.selectedIndexes()
         ]
         if text:
             tags = [tag.strip() for tag in text.split(",")]
@@ -319,19 +313,6 @@ class MultiCompleter(QCompleter):
 
     def splitPath(self, path):
         return [path.split(',')[-1].strip()]
-
-
-class TagListItemDelegate(QStyledItemDelegate):
-    """ Custom delegate for displaying larger item with larger text"""
-
-    def sizeHint(self, option, index):
-        # Customize the size of items
-        return QSize(100, 25)  # Adjust the width and height as needed
-
-    def initStyleOption(self, option, index):
-        super().initStyleOption(option, index)
-        # Customize the font size of the item text
-        option.font.setPointSize(12)  # Adjust the font size as needed
 
 
 if __name__ == "__main__":
