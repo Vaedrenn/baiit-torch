@@ -56,7 +56,6 @@ class ImageGalleryTableModel(QAbstractListModel):
         if not tags:
             self.filtered_filenames = self.filenames
         else:
-            print("tags: ", tags)
             try:
                 mask = self.state[tags].all(axis=1)
                 self.filtered_state = self.state[mask]

@@ -41,6 +41,12 @@ class TagListModel(QAbstractListModel):
         self.filtered_tags = list(tag_counts.items())
         self.layoutChanged.emit()
 
+    def reset(self):
+        tag_counts = self.other_model.state.drop(columns=['filename']).sum()
+        tag_counts = tag_counts.sort_values(ascending=False)
+        tag_counts = tag_counts.to_dict()
+        self.filtered_tags = list(tag_counts.items())
+        self.layoutChanged.emit()
 
 class TagList(QListView):
     itemClicked = pyqtSignal(str)  # Define the custom signal

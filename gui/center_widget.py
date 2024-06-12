@@ -160,6 +160,7 @@ class CentralWidget(QWidget):
             selected_tags.extend(tags)
         if not selected_tags:
             self.model.filter(None)
+            self.tag_model.reset()
         else:
             self.model.filter(selected_tags)
 
@@ -167,6 +168,7 @@ class CentralWidget(QWidget):
         self.tag_list.clearSelection()
         self.searchbar.clear()
         self.model.filter(None)
+        self.tag_model.reset()
 
     def update_page(self, item):
         filename = item.data()
