@@ -149,12 +149,10 @@ class CentralWidget(QWidget):
         self.searchbar.setCompleter(self.search_completer)
 
     def filter_images(self, text=None):
-
         # Get all tags selected from the tag list and remove (number)
-        selected_tags = [
-            item.data(role=Qt.UserRole+1)
-            for item in self.tag_list.selectedIndexes()
-        ]
+        selected_tags = self.tag_list.selected_items
+        selected_tags = list(selected_tags)
+
         if text:
             tags = [tag.strip() for tag in text.split(",")]
             selected_tags.extend(tags)
