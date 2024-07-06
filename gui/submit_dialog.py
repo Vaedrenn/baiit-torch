@@ -1,7 +1,11 @@
+from PyQt5.QtCore import pyqtSignal, QThread, pyqtSlot, Qt
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, \
+    QLineEdit, QFileDialog, QProgressBar
+
+
 from PyQt5.QtCore import pyqtSignal, QThread, pyqtSlot
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, \
-    QLineEdit, QFileDialog
-
+    QLineEdit, QFileDialog, QProgressDialog
 
 class ThresholdDialog(QDialog):
     results = pyqtSignal(object)  # Define the signal at the class level
@@ -63,7 +67,6 @@ class ThresholdDialog(QDialog):
         # Add Confirm and Cancel buttons
         button_layout = QHBoxLayout()
         confirm_button = QPushButton('Confirm')
-        confirm_button.clicked.connect(self.accept)
         confirm_button.clicked.connect(self.submit)
         cancel_button = QPushButton('Cancel')
         cancel_button.clicked.connect(self.reject)
@@ -98,18 +101,33 @@ class ThresholdDialog(QDialog):
                                     categories=self.categories,
                                     thresholds=self.thresholds)
         self.thread.results.connect(self.handle_results)
+        self.thread.progress.connect(self.update_progress)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
 
+        # Close the current dialog
+        self.accept()
+
+        # Open a new progress dialog
+        self.progress_dialog = QProgressDialog("Processing images...", "Cancel", 0, 100, self.parent())
+        self.progress_dialog.setWindowTitle("Progress")
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.canceled.connect(self.thread.terminate)
+        self.progress_dialog.show()
+
     @pyqtSlot(object)
     def handle_results(self, results):
-        print("handle results called")
-        print(results)
         self.results.emit(results)
+        self.progress_dialog.close()
+
+    @pyqtSlot(int)
+    def update_progress(self, value):
+        self.progress_dialog.setValue(value)
 
 
 class PredictThread(QThread):
     results = pyqtSignal(object)
+    progress = pyqtSignal(int)
 
     def __init__(self, parent, model_path, image_dir, categories, thresholds):
         super().__init__()
@@ -124,5 +142,6 @@ class PredictThread(QThread):
         results = predict(model_path=self.model_path,
                           image_dir=self.image_dir,
                           categories=self.categories,
-                          thresholds=self.thresholds)
+                          thresholds=self.thresholds,
+                          progress_callback=self.progress.emit)
         self.parent.results.emit(results)

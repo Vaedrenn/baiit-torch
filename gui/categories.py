@@ -24,38 +24,38 @@ class TagDisplayWidget(QWidget):
             self.tag_display.addWidget(new_component)
             self.widget_index[category] = new_component
         self.tag_display.setOrientation(Qt.Vertical)
-
-        # buttons at the bottom
-        tag_box = QHBoxLayout()
-        self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
-        button = QPushButton("Add Tag")
-
-        self.lineedit.setCompleter(self.completer)
-        self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
-        button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
-
-        tag_box.addWidget(self.lineedit)
-        tag_box.addWidget(button)
-        tag_box.setContentsMargins(0, 0, 0, 0)
-
-        button_box = QHBoxLayout()
-        button_box.setContentsMargins(0, 0, 0, 0)
-
-        store_tags = QPushButton("Save Changes")
-        b_select_all = QPushButton("Select All")
-        b_clear = QPushButton("Clear")
-
-        store_tags.clicked.connect(lambda: self.update_tag_status())
-        b_select_all.clicked.connect(lambda: self.select_all_tags())
-        b_clear.clicked.connect(lambda: self.clear_tags())
-
-        button_box.layout().addWidget(store_tags)
-        button_box.layout().addWidget(b_select_all)
-        button_box.layout().addWidget(b_clear)
+        #
+        # # buttons at the bottom
+        # tag_box = QHBoxLayout()
+        # self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
+        # button = QPushButton("Add Tag")
+        #
+        # self.lineedit.setCompleter(self.completer)
+        # self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
+        # button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
+        #
+        # tag_box.addWidget(self.lineedit)
+        # tag_box.addWidget(button)
+        # tag_box.setContentsMargins(0, 0, 0, 0)
+        #
+        # button_box = QHBoxLayout()
+        # button_box.setContentsMargins(0, 0, 0, 0)
+        #
+        # store_tags = QPushButton("Save Changes")
+        # b_select_all = QPushButton("Select All")
+        # b_clear = QPushButton("Clear")
+        #
+        # store_tags.clicked.connect(lambda: self.update_tag_status())
+        # b_select_all.clicked.connect(lambda: self.select_all_tags())
+        # b_clear.clicked.connect(lambda: self.clear_tags())
+        #
+        # button_box.layout().addWidget(store_tags)
+        # button_box.layout().addWidget(b_select_all)
+        # button_box.layout().addWidget(b_clear)
 
         self.layout().addWidget(self.tag_display)
-        self.layout().addLayout(tag_box)
-        self.layout().addLayout(button_box)
+        # self.layout().addLayout(tag_box)
+        # self.layout().addLayout(button_box)
 
     def update_tag_status(self):
         """ Saves the check states of the current image"""

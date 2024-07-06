@@ -9,12 +9,12 @@ from timm.data import create_transform, resolve_data_config
 from load_actions import load_model, load_labels
 from process_images import process_images_from_directory
 
-
 def predict(model_path: str | os.PathLike,
             thresholds: dict,
             categories: dict,
             image_dir: str | os.PathLike,
-            batch_size: int = 32
+            batch_size: int = 32,
+            progress_callback=None
             ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]] | None:
     """
     Predicts tags for images in directory
@@ -53,7 +53,9 @@ def predict(model_path: str | os.PathLike,
         for i in range(0, len(data), batch_size):
             yield data[i:i + batch_size]
 
-    for image_batch in batch_generator(processed_images, batch_size):
+    total_batches = len(processed_images) // batch_size + (1 if len(processed_images) % batch_size != 0 else 0)
+
+    for i, image_batch in enumerate(batch_generator(processed_images, batch_size)):
         filenames = [img[0] for img in image_batch]
         img_tensors = torch.stack([img[1] for img in image_batch])
 
@@ -80,10 +82,12 @@ def predict(model_path: str | os.PathLike,
         img_tensors.cpu()
         torch.cuda.empty_cache()
 
+        if progress_callback:
+            progress_callback(int((i + 1) / total_batches * 100))
+
     model.cpu()
     torch.cuda.empty_cache()
     return results
-
 
 def process_results(probs, labels, thresholds):
     if len(probs.shape) == 1:
