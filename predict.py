@@ -18,6 +18,7 @@ def predict(model_path: str | os.PathLike,
             ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]] | None:
     """
     Predicts tags for images in directory
+    :param progress_callback: Helper Function for progress bar
     :param model_path: path to model
     :param thresholds: dictionary of categories and thresholds, if threshold > probs then accept tag
     :param categories: dictionary of category and their number in selected_tags.csv
@@ -35,12 +36,19 @@ def predict(model_path: str | os.PathLike,
     model = load_model(model_path=model_path)
     if model is None:
         return
+    if progress_callback:
+        progress_callback((5, "Loading Labels"))
+
     labels = load_labels(model_path=model_path, categories=categories)
     if labels is None or {}:
         return
+    if progress_callback:
+        progress_callback((10, "Preprocessing Images"))
     transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
 
     processed_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
+    if progress_callback:
+        progress_callback((20, "Predicting Tags"))
 
     # Determine device (GPU or CPU)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -83,7 +91,7 @@ def predict(model_path: str | os.PathLike,
         torch.cuda.empty_cache()
 
         if progress_callback:
-            progress_callback(int((i + 1) / total_batches * 100))
+            progress_callback((int((i + 1) / total_batches * 100), f"Predicting Tags: Batch {i+1} of {total_batches}"))
 
     model.cpu()
     torch.cuda.empty_cache()

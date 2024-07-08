@@ -109,7 +109,7 @@ class ThresholdDialog(QDialog):
         self.accept()
 
         # Open a new progress dialog
-        self.progress_dialog = QProgressDialog("Processing images...", "Cancel", 0, 100, self.parent())
+        self.progress_dialog = QProgressDialog("Loading Model...", "Cancel", 0, 100, self.parent())
         self.progress_dialog.setWindowTitle("Progress")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
         self.progress_dialog.canceled.connect(self.thread.terminate)
@@ -120,14 +120,16 @@ class ThresholdDialog(QDialog):
         self.results.emit(results)
         self.progress_dialog.close()
 
-    @pyqtSlot(int)
-    def update_progress(self, value):
+    @pyqtSlot(object)
+    def update_progress(self, data):
+        value, text = data
+        self.progress_dialog.setLabelText(text)
         self.progress_dialog.setValue(value)
 
 
 class PredictThread(QThread):
     results = pyqtSignal(object)
-    progress = pyqtSignal(int)
+    progress = pyqtSignal(object)
 
     def __init__(self, parent, model_path, image_dir, categories, thresholds):
         super().__init__()

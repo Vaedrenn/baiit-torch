@@ -86,7 +86,7 @@ class CentralWidget(QWidget):
         self.image_gallery.clicked.connect(self.update_page)  # on click change image
 
         # Frame 3   tag display, shows all tags related to image separated into their respective categories
-        self.tag_display.setMaximumWidth(300)
+        self.tag_display.setFixedWidth(300)
         self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
 
         # Navbar
