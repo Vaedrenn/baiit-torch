@@ -55,7 +55,9 @@ def process_images_from_directory(model_path: str, directory: str, transform) ->
     preprocessed_images = []
     image_filenames = os.listdir(directory)
     pool = QThreadPool.globalInstance()
-    max_threads = pool.maxThreadCount() - 2  # stop eating all my cpu
+    max_threads = pool.maxThreadCount()
+    if max_threads > 2:  # stop eating all my cpu
+        max_threads -= 2
     pool.setMaxThreadCount(max_threads)
     # get dimensions from model
     with open(os.path.join(model_path, "config.json")) as config_file:
