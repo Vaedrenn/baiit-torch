@@ -1,7 +1,8 @@
+import sys
 import time
 
 import pandas as pd
-from PyQt5.QtCore import Qt, QModelIndex, QVariant, QThread, pyqtSignal, QAbstractListModel
+from PyQt5.QtCore import Qt, QModelIndex, QVariant, QThread, pyqtSignal, QAbstractListModel, QRunnable, QThreadPool
 from PyQt5.QtGui import QIcon, QPixmap, QImage
 
 
@@ -12,6 +13,7 @@ class ImageGalleryTableModel(QAbstractListModel):
         super(ImageGalleryTableModel, self).__init__(parent)
         self.filenames = list(results.keys())
         self.results = results  # pseudo cache of tags by categories
+        print(f"Size of results: {sys.getsizeof(results)}")
         self.tags = None  # df of tags and count
         self.state = None  # df of tag state
         self.filtered_filenames = self.filenames  # Use this instead of state to avoid extreme data population times
@@ -90,22 +92,39 @@ def build_table(results):
 
 
 class IconCreationThread(QThread):
+    """
+    Offload icon creation off of main thread. Creates a new runnable for each filename
+    """
     icons_created = pyqtSignal(dict)
 
     def __init__(self, results):
         super().__init__()
         self.results = results
+        self.icons = {}
 
     def run(self):
-        icons = create_icons(self.results)
-        self.icons_created.emit(icons)
+        pool = QThreadPool.globalInstance()
+        max_threads = pool.maxThreadCount()
+        if max_threads > 2:  # stop eating all my cpu
+            max_threads -= 2
+        pool.setMaxThreadCount(max_threads)
+
+        for filename in self.results.keys():
+            runnable = CreateIconRunnable(filename=filename, icons=self.icons)
+            pool.start(runnable)
+
+        pool.waitForDone()
+        self.icons_created.emit(self.icons)
 
 
-def create_icons(results):
-    icons = {}
-    for filename in results.keys():
-        image = QImage(filename).scaledToHeight(200, Qt.FastTransformation)
+class CreateIconRunnable(QRunnable):
+    def __init__(self, filename, icons):
+        super().__init__()
+        self.filename = filename
+        self.icons = icons
+
+    def run(self):
+        image = QImage(self.filename).scaledToHeight(200, Qt.FastTransformation)
         pixmap = QPixmap.fromImage(image)
         ico = QIcon(pixmap)
-        icons[filename] = ico
-    return icons
+        self.icons[self.filename] = ico
