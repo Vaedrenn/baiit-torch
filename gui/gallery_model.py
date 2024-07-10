@@ -13,7 +13,6 @@ class ImageGalleryTableModel(QAbstractListModel):
         super(ImageGalleryTableModel, self).__init__(parent)
         self.filenames = list(results.keys())
         self.results = results  # pseudo cache of tags by categories
-        print(f"Size of results: {sys.getsizeof(results)}")
         self.tags = None  # df of tags and count
         self.state = None  # df of tag state
         self.filtered_filenames = self.filenames  # Use this instead of state to avoid extreme data population times
