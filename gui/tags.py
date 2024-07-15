@@ -6,17 +6,19 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QSplitter, \
     QSpinBox, QPushButton, QHBoxLayout, QCompleter, QLineEdit, QApplication, QListWidget
 
 from gui.tuplelistwidget import TupleCheckListWidget
+from gui.CheckListWidget import CheckListWidget
 
 
 class TagDisplayWidget(QWidget):
-    def __init__(self, model):
+    def __init__(self):
         super().__init__()
         self.setLayout(QVBoxLayout())
-        self.checklist = QListWidget()
+        self.checklist = CheckListWidget()
         self.lineedit = QLineEdit()
         self.completer = QCompleter()
         self.add_btn = QPushButton("Add Tag")
         self.labels = []
+        self.model = None
 
         self.initUI()
 
@@ -35,8 +37,18 @@ class TagDisplayWidget(QWidget):
 
         self.layout().addChildLayout(control_box)
 
-    def add_item(self, item, state):
-        pass
+    def set_model(self, model):
+        self.model = model
+        self.labels = self.model.tags.keys()
+
+    def add_item(self, item: str, state: bool):
+        """
+        used to populate the list
+        :param item: thing to add
+        :param state: T/F
+        :return: None
+        """
+        self.checklist.addItemState(item, state)
 
     def add_tag(self, text):
         """
@@ -47,7 +59,8 @@ class TagDisplayWidget(QWidget):
         if self.labels is None:
             return
 
-        pass
+        self.add_item(text, True)
+
 
     def update_tag_status(self):
         """ Saves the check states of the current image"""
@@ -55,8 +68,12 @@ class TagDisplayWidget(QWidget):
 
     def select_all_tags(self):
         """ Checks all tags"""
-        pass
+        if self.model is None:
+            return
+
 
     def clear_tags(self):
         """ Unchecks all tags"""
-        pass
+        if self.model is None:
+            return
+
