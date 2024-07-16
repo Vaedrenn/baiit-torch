@@ -9,6 +9,7 @@ from timm.data import create_transform, resolve_data_config
 from load_actions import load_model, load_labels
 from process_images import process_images_from_directory
 
+
 def predict(model_path: str | os.PathLike,
             thresholds: dict,
             categories: dict,
@@ -72,7 +73,8 @@ def predict(model_path: str | os.PathLike,
 
         # Ensure img_tensors have the shape (batch_size, channels, height, width)
         if len(img_tensors.shape) != 4:
-            raise ValueError(f"Expected img_tensors to have 4 dimensions (batch_size, channels, height, width), but got {img_tensors.shape}")
+            raise ValueError(
+                f"Expected img_tensors to have 4 dimensions (batch_size, channels, height, width), but got {img_tensors.shape}")
 
         with torch.inference_mode():
             outputs = model.forward(img_tensors)
@@ -91,11 +93,13 @@ def predict(model_path: str | os.PathLike,
         torch.cuda.empty_cache()
 
         if progress_callback:
-            progress_callback((int((i + 1) / total_batches * 100), f"Predicting Tags: Batch {i+1} of {total_batches}"))
+            progress_callback(
+                (int((i + 1) / total_batches * 100), f"Predicting Tags: Batch {i + 1} of {total_batches}"))
 
     model.cpu()
     torch.cuda.empty_cache()
     return results
+
 
 def process_results(probs, labels, thresholds):
     if len(probs.shape) == 1:
@@ -119,9 +123,7 @@ def process_results(probs, labels, thresholds):
 
     # Convert to a string suitable for use as a training caption
     caption = ", ".join(combined_names)
-    tag_list = caption.replace("_", " ").replace("(", "\(").replace(")", "\)")
 
     processed['caption'] = caption
-    processed['taglist'] = tag_list
 
     return processed
