@@ -60,6 +60,8 @@ def load_labels(model_path: str | os.path, categories: dict, filename="selected_
     try:
         tags_df = pd.read_csv(tag_path)
         tags = tags_df["name"]
+        tags = tags.str.replace("_", " ").str.replace("(", "\(").str.replace(")", "\)")
+
         all_tags = tags.tolist()
         labels['tags'] = all_tags
 
