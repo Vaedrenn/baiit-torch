@@ -39,7 +39,7 @@ class ImageGalleryTableModel(QAbstractListModel):
         elif role == Qt.DecorationRole:
             return self.icons.get(filename, QIcon())  # Return empty QIcon if not yet loaded
         elif role == Qt.UserRole:
-            return self.results[filename]['taglist']
+            return self.results[filename]['caption']
 
         return QVariant()
 

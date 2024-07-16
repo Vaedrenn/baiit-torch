@@ -9,7 +9,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL.TiffImagePlugin import ImageFileDirectory_v2
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QFont
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
     QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate, QLabel
@@ -18,7 +18,8 @@ from gui.categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
 from gui.gallery_model import ImageGalleryTableModel
 from gui.image_gallery import ImageGallery
-from gui.taglist_model import TagList, TagListModel
+from gui.filter_list import TagList, TagListModel
+from gui.CheckListWidget import CheckListWidget
 
 
 class MainWindow(QMainWindow):
@@ -42,6 +43,7 @@ class CentralWidget(QWidget):
         self.filter_completer = QCompleter()
         self.clear_btn = QPushButton()
         self.tag_list = TagList()
+        self.checklist = CheckListWidget()
         self.caption = QTextEdit()
 
         self.image_gallery = ImageGallery()
@@ -88,6 +90,10 @@ class CentralWidget(QWidget):
         # Frame 3   tag display, shows all tags related to image separated into their respective categories
         self.tag_display.setFixedWidth(300)
         self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
+        self.checklist.setFixedWidth(300)
+        font = QFont("Verdana", 10)
+        self.checklist.setFont(font)
+        self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
 
         # Navbar
         navbar = QWidget()
@@ -101,7 +107,10 @@ class CentralWidget(QWidget):
         self.layout().addWidget(navbar)
         self.layout().addWidget(filter_widget)
         self.layout().addWidget(self.image_gallery)
+        self.layout().addWidget(self.checklist)
         self.layout().addWidget(self.tag_display)
+
+        self.tag_display.setVisible(False)
 
     def add_buttons_to_navbar(self, navbar):
         buttons_info = [
@@ -174,10 +183,29 @@ class CentralWidget(QWidget):
 
     def update_page(self, item):
         filename = item.data()
+
+        row = self.model.state[self.model.state['filename'] == filename]
+        row_dict = row.to_dict('records')[0] if not row.empty else None
+
+        self.checklist.clear()
         for category in self.categories.keys():
             tags = self.model.get_tags(filename, category)
             self.update_tags(category, tags, True)
-            self.update_caption(item)
+
+        for category in self.categories.keys():
+            tags = self.model.get_tags(filename, category)
+            if len(tags) == 0:  # don't have empty
+                continue
+            category_item = QListWidgetItem(str(category).capitalize())
+            category_item.setFlags(category_item.flags() & ~(Qt.ItemIsSelectable | Qt.ItemIsUserCheckable))
+            self.checklist.addItem(category_item)
+            for tag in tags.keys():
+                state = str(tag) in row_dict
+                list_item = QListWidgetItem(tag)
+                self.checklist.addItemState(list_item, state)
+            self.checklist.addSpacer()
+
+        self.update_caption(item)
 
     def update_tags(self, category, tags, tag_state):
         """ Refreshes the tags in the given checklist"""
@@ -317,4 +345,3 @@ class MultiCompleter(QCompleter):
 
     def splitPath(self, path):
         return [path.split(',')[-1].strip()]
-

@@ -24,6 +24,9 @@ class TagDisplayWidget(QWidget):
 
     def initUI(self):
         self.setLayout(QVBoxLayout())
+        font = QFont()
+        font.setPointSize(14)  # Set the desired font size
+        self.checklist.setFont(font)
         self.layout().addWidget(self.checklist)
 
         control_box = QHBoxLayout()
