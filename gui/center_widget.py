@@ -182,28 +182,39 @@ class CentralWidget(QWidget):
         self.tag_list.selected_items.clear()
 
     def update_page(self, item):
+        """
+        Refreshes the page based on the item clicked
+        :param item: qt item clicked
+        :return: none
+        """
         filename = item.data()
 
+        # Get the row of the corresponding item from the dataframe
         row = self.model.state[self.model.state['filename'] == filename]
         row_dict = row.to_dict('records')[0] if not row.empty else None
 
         self.checklist.clear()
-        for category in self.categories.keys():
-            tags = self.model.get_tags(filename, category)
-            self.update_tags(category, tags, True)
 
+        # For each category, add item to checklist. Doing it this way allows items to be added in a certain order
         for category in self.categories.keys():
             tags = self.model.get_tags(filename, category)
-            if len(tags) == 0:  # don't have empty
+            if len(tags) == 0:  # Ignore empty categories
                 continue
+
             category_item = QListWidgetItem(str(category).capitalize())
             category_item.setFlags(category_item.flags() & ~(Qt.ItemIsSelectable | Qt.ItemIsUserCheckable))
             self.checklist.addItem(category_item)
+
             for tag in tags.keys():
                 state = str(tag) in row_dict
                 list_item = QListWidgetItem(tag)
                 self.checklist.addItemState(list_item, state)
             self.checklist.addSpacer()
+
+        # Do the same thing for detailed view
+        for category in self.categories.keys():
+            tags = self.model.get_tags(filename, category)
+            self.update_tags(category, tags, True)
 
         self.update_caption(item)
 
