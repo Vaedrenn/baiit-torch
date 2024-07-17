@@ -228,6 +228,12 @@ class CentralWidget(QWidget):
     def update_caption(self, item):
         self.caption.setText(item.data(role=Qt.UserRole))
 
+    def select_all(self):
+        self.checklist.checkAll()
+
+    def deselect_all(self):
+        self.checklist.unCheckAll()
+
     def write_tags(self):
         """
         Write tags to image's exif

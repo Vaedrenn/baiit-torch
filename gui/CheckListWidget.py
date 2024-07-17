@@ -41,6 +41,19 @@ class CheckListWidget(QListWidget):
 
         return ret_list
 
+    def checkAll(self):
+        for i in range(self.count()):
+            item = self.item(i)
+            if item.checkState() == Qt.Unchecked:
+                item.setCheckState(Qt.Checked)
+
+    def unCheckAll(self):
+        for i in range(self.count()):
+            item = self.item(i)
+            if item.checkState() == Qt.Checked:
+                item.setCheckState(Qt.Unchecked)
+
+
     # def removeCheckedRows(self):
     #     status = Qt.Checked
     #     checked_rows = self.__getRows(status)
