@@ -40,7 +40,6 @@ class CentralWidget(QWidget):
         self.clear_btn = QPushButton()
         self.filter_list = FilterList()
         self.checklist = TagDisplay()
-        self.caption = QTextEdit()
 
         self.image_gallery = ImageGallery()
 
@@ -51,7 +50,7 @@ class CentralWidget(QWidget):
         QApplication.setStyle(QStyleFactory.create('Fusion'))
         self.setPalette(create_dark_palette())
 
-        # Frame 1  tag search and filter, caption
+        # Frame 1  tag search and filter
         filter_widget = QWidget()
         filter_widget.setLayout(QVBoxLayout())
         filter_widget.layout().setContentsMargins(0, 0, 0, 0)
@@ -67,8 +66,6 @@ class CentralWidget(QWidget):
         search_box.addWidget(self.clear_btn)
 
         self.filter_list.itemClicked.connect(lambda: self.filter_images(self.searchbar.text()))  # on click filter
-
-        self.caption.setMaximumHeight(200)
 
         filter_widget.layout().addLayout(search_box)
         filter_widget.layout().addWidget(self.filter_list)
@@ -203,17 +200,6 @@ class CentralWidget(QWidget):
         for category in self.categories.keys():
             tags = self.model.get_tags(filename, category)
             self.update_tags(category, tags, True)
-
-        self.update_caption(item)
-
-    def update_tags(self, category, tags, tag_state):
-        """ Refreshes the tags in the given checklist"""
-        if tags is None:
-            return
-
-    def update_caption(self, item):
-        self.caption.setText(item.data(role=Qt.UserRole))
-
 
     def write_tags(self):
         """
