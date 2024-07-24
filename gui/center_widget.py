@@ -2,8 +2,6 @@ import io
 import json
 import os
 import shutil
-import sys
-import time
 
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -11,15 +9,13 @@ from PIL.TiffImagePlugin import ImageFileDirectory_v2
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap, QFont
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
-    QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidget, \
-    QListWidgetItem, QMessageBox, QFileDialog, QStyledItemDelegate, QLabel
+    QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidgetItem, QMessageBox, QFileDialog, QLabel
 
-from gui.categories import TagDisplayWidget
 from gui.dark_palette import create_dark_palette
+from gui.filter_list import FilterList, FilterListModel
 from gui.gallery_model import ImageGalleryTableModel
 from gui.image_gallery import ImageGallery
-from gui.filter_list import TagList, TagListModel
-from gui.CheckListWidget import CheckListWidget
+from gui.tag_display import TagDisplay
 
 
 class MainWindow(QMainWindow):
@@ -42,12 +38,11 @@ class CentralWidget(QWidget):
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
         self.clear_btn = QPushButton()
-        self.tag_list = TagList()
-        self.checklist = CheckListWidget()
+        self.filter_list = FilterList()
+        self.checklist = TagDisplay()
         self.caption = QTextEdit()
 
         self.image_gallery = ImageGallery()
-        self.tag_display = TagDisplayWidget(thresholds=self.categories)
 
         self.initUI()
 
@@ -71,13 +66,12 @@ class CentralWidget(QWidget):
         search_box.addWidget(self.searchbar)
         search_box.addWidget(self.clear_btn)
 
-        self.tag_list.itemClicked.connect(lambda: self.filter_images(self.searchbar.text()))  # on click filter
+        self.filter_list.itemClicked.connect(lambda: self.filter_images(self.searchbar.text()))  # on click filter
 
         self.caption.setMaximumHeight(200)
 
         filter_widget.layout().addLayout(search_box)
-        filter_widget.layout().addWidget(self.tag_list)
-        # filter_widget.layout().addWidget(self.caption)
+        filter_widget.layout().addWidget(self.filter_list)
 
         # Frame 2   image gallery
         self.image_label = QLabel()
@@ -88,12 +82,9 @@ class CentralWidget(QWidget):
         self.image_gallery.clicked.connect(self.update_page)  # on click change image
 
         # Frame 3   tag display, shows all tags related to image separated into their respective categories
-        self.tag_display.setFixedWidth(300)
-        self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
         self.checklist.setFixedWidth(300)
         font = QFont("Verdana", 10)
         self.checklist.setFont(font)
-        self.tag_display.layout().setContentsMargins(0, 0, 0, 0)
 
         # Navbar
         navbar = QWidget()
@@ -108,9 +99,6 @@ class CentralWidget(QWidget):
         self.layout().addWidget(filter_widget)
         self.layout().addWidget(self.image_gallery)
         self.layout().addWidget(self.checklist)
-        self.layout().addWidget(self.tag_display)
-
-        self.tag_display.setVisible(False)
 
     def add_buttons_to_navbar(self, navbar):
         buttons_info = [
@@ -146,15 +134,15 @@ class CentralWidget(QWidget):
             self.tag_model.deleteLater()  # Delete the old model to free up memory
             self.model = None  # Immediately set it to None to avoid issues
             self.tag_model = None
-            self.tag_list.selected_items.clear()
+            self.filter_list.selected_items.clear()
 
         # Create and assign model
         self.model = ImageGalleryTableModel(data)
         self.image_gallery.setModel(self.model)
 
         # Add tags to filter list
-        self.tag_model = TagListModel(self.model)
-        self.tag_list.setModel(self.tag_model)
+        self.tag_model = FilterListModel(self.model)
+        self.filter_list.setModel(self.tag_model)
 
         # Assign Completer
         self.search_completer = MultiCompleter(self.model.tags.keys())
@@ -162,7 +150,7 @@ class CentralWidget(QWidget):
 
     def filter_images(self, text=None):
         # Get all tags selected from the tag list and remove (number)
-        selected_tags = self.tag_list.selected_items
+        selected_tags = self.filter_list.selected_items
         selected_tags = list(selected_tags)
 
         if text:
@@ -175,11 +163,11 @@ class CentralWidget(QWidget):
             self.model.filter(selected_tags)
 
     def clear_filter(self):
-        self.tag_list.clearSelection()
+        self.filter_list.clearSelection()
         self.searchbar.clear()
         self.model.filter(None)
         self.tag_model.default()
-        self.tag_list.selected_items.clear()
+        self.filter_list.selected_items.clear()
 
     def update_page(self, item):
         """
@@ -222,17 +210,10 @@ class CentralWidget(QWidget):
         """ Refreshes the tags in the given checklist"""
         if tags is None:
             return
-        widget = self.tag_display.get(category)
-        widget.add_dict(tags, tag_state)
 
     def update_caption(self, item):
         self.caption.setText(item.data(role=Qt.UserRole))
 
-    def select_all(self):
-        self.checklist.checkAll()
-
-    def deselect_all(self):
-        self.checklist.unCheckAll()
 
     def write_tags(self):
         """

@@ -4,8 +4,10 @@ from PyQt5.QtWidgets import QListView, QAbstractItemView, QStyledItemDelegate
 
 from gui.gallery_model import ImageGalleryTableModel
 
-TAG = Qt.UserRole+1
-class TagListModel(QAbstractListModel):
+TAG = Qt.UserRole + 1
+
+
+class FilterListModel(QAbstractListModel):
 
     def __init__(self, model: ImageGalleryTableModel):
         super().__init__()
@@ -46,7 +48,8 @@ class TagListModel(QAbstractListModel):
         self.filtered_tags = list(tag_counts.items())
         self.layoutChanged.emit()
 
-class TagList(QListView):
+
+class FilterList(QListView):
     itemClicked = pyqtSignal(str)  # Define the custom signal
 
     def __init__(self):
