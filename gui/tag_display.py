@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QCompleter, QPushButton, QHBoxLayout, QLineEdit, \
     QLabel
 
@@ -8,6 +8,8 @@ from gui.multicompleter import MultiCompleter
 
 
 class TagDisplay(CheckListWidget):
+    layoutChanged = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__()
         self.model = None
@@ -55,6 +57,18 @@ class TagDisplay(CheckListWidget):
             return
         dialog = add_tag_dialog(parent=self.parentWidget())
         dialog.exec_()
+        self.layoutChanged.emit()
+        self.update_caption()
+
+    def update_caption(self):
+        curr_img = self.parent().current_image
+        print(self.model.results[curr_img]['training_caption'])
+
+        row = self.model.state[self.model.state['filename'] == curr_img]
+        selected_columns = row.columns[row.iloc[0] == True]
+        caption = ', '.join(selected_columns)
+
+        self.model.results[curr_img]['training_caption'] = caption
 
     def view_caption(self):
         pass
@@ -120,4 +134,3 @@ class add_tag_dialog(QDialog):
             row_idx = df.index[df['filename'] == curr_img].tolist()
             if row_idx:
                 df.at[row_idx[0], t] = True
-
