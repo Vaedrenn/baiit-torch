@@ -44,7 +44,14 @@ class ImageGalleryTableModel(QAbstractListModel):
         return QVariant()
 
     def get_tags(self, filename, category):
-        return self.results[filename][category]
+        try:
+            return self.results[filename][category]
+        except KeyError:
+            if category == 'user_tags':
+                return []
+            else:
+                print(f"KeyError: category: '{category}' not found for '{filename}'")
+                return []
 
     def on_icons_created(self, icons):
         self.icons = icons

@@ -15,6 +15,7 @@ from gui.dark_palette import create_dark_palette
 from gui.filter_list import FilterList, FilterListModel
 from gui.gallery_model import ImageGalleryTableModel
 from gui.image_gallery import ImageGallery
+from gui.multicompleter import MultiCompleter
 from gui.tag_display import TagDisplay
 
 
@@ -30,7 +31,7 @@ class CentralWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.threshold = {"rating": 0.5, "characters": 0.7, "general": 0.35}  # load from settings
-        self.categories = {"rating": 9, "characters": 4, "general": 0}  # load from settings
+        self.categories = {"rating": 9, "characters": 4, "general": 0, "user_tags": 9999}  # load from settings
         self.model = None
         self.model_folder = None  # cache
         self.tag_model = None
@@ -308,23 +309,3 @@ class CentralWidget(QWidget):
     def settings(self):
         # Placeholder method for settings
         print("Settings action triggered")
-
-
-class MultiCompleter(QCompleter):
-    """ Multi Tag completer, allows for comma separated tag searching"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # self.setMaxVisibleItems(5)
-
-    def pathFromIndex(self, index):
-        path = super().pathFromIndex(index)
-
-        lst = str(self.widget().text()).split(', ')
-        if len(lst) > 1:
-            path = ', '.join(lst[:-1]) + ', ' + path
-
-        return path
-
-    def splitPath(self, path):
-        return [path.split(',')[-1].strip()]

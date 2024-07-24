@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QCompleter, QP
     QLabel
 
 from gui.CheckListWidget import CheckListWidget
-from gui.center_widget import MultiCompleter
 from gui.gallery_model import ImageGalleryTableModel
+from gui.multicompleter import MultiCompleter
 
 
 class TagDisplay(CheckListWidget):
@@ -51,6 +51,8 @@ class TagDisplay(CheckListWidget):
         self.unCheckAll()
 
     def add_tag(self):
+        if self.model is None:
+            return
         dialog = add_tag_dialog(parent=self.parentWidget())
         dialog.exec_()
 
@@ -64,6 +66,8 @@ class TagDisplay(CheckListWidget):
 class add_tag_dialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.model = parent.model
+
         self.setWindowTitle("Add Tags")
 
         main_layout = QVBoxLayout()
@@ -71,14 +75,14 @@ class add_tag_dialog(QDialog):
         self.text = QLabel(f"Adding Tags to: {parent.current_image}")
 
         self.lineedit = QLineEdit()
-        self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
+        self.lineedit.setPlaceholderText("  Separate each tag with a comma")
         button = QPushButton("Add Tag")
 
-        self.completer = MultiCompleter(self.model.tags.keys())
+        self.completer = MultiCompleter(self.parent().model.tags.keys())
         self.lineedit.setCompleter(self.completer)
 
         self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
-        # button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
+        button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
 
         tag_box = QHBoxLayout()
         tag_box.addWidget(self.lineedit)
@@ -89,3 +93,31 @@ class add_tag_dialog(QDialog):
 
         main_layout.addLayout(tag_box)
         self.setLayout(main_layout)
+
+    def add_tag(self, text):
+        """
+        Add new tags to the DataFrame and update the relevant image row.
+        :param text: Comma-separated string of new tags.
+        """
+        curr_img = self.parent().current_image
+
+        tags = [tag.strip() for tag in text.split(",")]
+
+        df = self.model.state
+
+        for t in tags:
+            if t not in self.model.tags.keys():
+                # add new column to the dataframe set all fields to False
+                df[t] = False
+
+            # if there is no field for user tags make one
+            if 'user_tags' not in self.model.results[curr_img].keys():
+                self.model.results[curr_img]['user_tags'] = {}
+
+            self.model.results[curr_img]['user_tags'][str(t)] = 1
+
+            # Find the row index of the current image and set the new tag to True
+            row_idx = df.index[df['filename'] == curr_img].tolist()
+            if row_idx:
+                df.at[row_idx[0], t] = True
+
