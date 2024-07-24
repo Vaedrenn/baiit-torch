@@ -1,12 +1,14 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMenu, QAction
+from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QCompleter, QPushButton, QHBoxLayout, QLineEdit, \
+    QLabel
 
 from gui.CheckListWidget import CheckListWidget
+from gui.center_widget import MultiCompleter
 from gui.gallery_model import ImageGalleryTableModel
 
 
 class TagDisplay(CheckListWidget):
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
         self.model = None
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -49,10 +51,41 @@ class TagDisplay(CheckListWidget):
         self.unCheckAll()
 
     def add_tag(self):
-        pass
+        dialog = add_tag_dialog(parent=self.parentWidget())
+        dialog.exec_()
 
     def view_caption(self):
         pass
 
     def edit_caption(self):
         pass
+
+
+class add_tag_dialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Add Tags")
+
+        main_layout = QVBoxLayout()
+
+        self.text = QLabel(f"Adding Tags to: {parent.current_image}")
+
+        self.lineedit = QLineEdit()
+        self.lineedit.setPlaceholderText("  Add a tag here and hit enter")
+        button = QPushButton("Add Tag")
+
+        self.completer = MultiCompleter(self.model.tags.keys())
+        self.lineedit.setCompleter(self.completer)
+
+        self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
+        # button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
+
+        tag_box = QHBoxLayout()
+        tag_box.addWidget(self.lineedit)
+        tag_box.addWidget(button)
+        tag_box.setContentsMargins(0, 0, 0, 0)
+
+        main_layout.addWidget(self.text)
+
+        main_layout.addLayout(tag_box)
+        self.setLayout(main_layout)

@@ -34,6 +34,7 @@ class CentralWidget(QWidget):
         self.model = None
         self.model_folder = None  # cache
         self.tag_model = None
+        self.current_image = None
 
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
@@ -175,6 +176,7 @@ class CentralWidget(QWidget):
         :return: none
         """
         filename = item.data()
+        self.current_image = filename
 
         # Get the row of the corresponding item from the dataframe
         row = self.model.state[self.model.state['filename'] == filename]
