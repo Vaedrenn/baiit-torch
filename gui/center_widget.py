@@ -145,6 +145,8 @@ class CentralWidget(QWidget):
         self.search_completer = MultiCompleter(self.model.tags.keys())
         self.searchbar.setCompleter(self.search_completer)
 
+        self.checklist.set_model(self.model)
+
     def filter_images(self, text=None):
         # Get all tags selected from the tag list and remove (number)
         selected_tags = self.filter_list.selected_items

@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMenu, QAction
 
 from gui.CheckListWidget import CheckListWidget
+from gui.gallery_model import ImageGalleryTableModel
 
 
 class TagDisplay(CheckListWidget):
@@ -10,6 +11,9 @@ class TagDisplay(CheckListWidget):
         self.model = None
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
+
+    def set_model(self, model: ImageGalleryTableModel):
+        self.model = model
 
     def show_context_menu(self, position):
         menu = QMenu()
