@@ -124,6 +124,6 @@ def process_results(probs, labels, thresholds):
     # Convert to a string suitable for use as a training caption
     caption = ", ".join(combined_names)
 
-    processed['caption'] = caption
+    processed['training_caption'] = caption
 
     return processed

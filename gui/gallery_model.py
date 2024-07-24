@@ -39,7 +39,7 @@ class ImageGalleryTableModel(QAbstractListModel):
         elif role == Qt.DecorationRole:
             return self.icons.get(filename, QIcon())  # Return empty QIcon if not yet loaded
         elif role == Qt.UserRole:
-            return self.results[filename]['caption']
+            return self.results[filename]['training_caption']
 
         return QVariant()
 
@@ -69,13 +69,13 @@ class ImageGalleryTableModel(QAbstractListModel):
 def build_table(results):
     unique_tags = set()
     for attributes in results.values():
-        tags = attributes['caption'].split(', ')
+        tags = attributes['training_caption'].split(', ')
         unique_tags.update(tags)
 
     # Create the table
     table_data = []
     for filename, attributes in results.items():
-        tags = set(attributes['caption'].split(', '))
+        tags = set(attributes['training_caption'].split(', '))
         row = {'filename': filename}
         for tag in unique_tags:
             row[tag] = tag in tags

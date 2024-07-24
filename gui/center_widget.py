@@ -198,11 +198,6 @@ class CentralWidget(QWidget):
                 self.checklist.addItemState(list_item, state)
             self.checklist.addSpacer()
 
-        # Do the same thing for detailed view
-        for category in self.categories.keys():
-            tags = self.model.get_tags(filename, category)
-            self.update_tags(category, tags, True)
-
     def write_tags(self):
         """
         Write tags to image's exif
@@ -239,7 +234,7 @@ class CentralWidget(QWidget):
                     self.process_results(results)
                 # QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
                 return True
-            except Exception as e:
+            except RuntimeError as e:
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
                 return None
 
