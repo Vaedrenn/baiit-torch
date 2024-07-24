@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QWindow
 from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QCompleter, QPushButton, QHBoxLayout, QLineEdit, \
-    QLabel
+    QLabel, QWidget, QListWidgetItem
 
 from gui.CheckListWidget import CheckListWidget
 from gui.gallery_model import ImageGalleryTableModel
@@ -8,7 +9,6 @@ from gui.multicompleter import MultiCompleter
 
 
 class TagDisplay(CheckListWidget):
-    layoutChanged = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__()
@@ -55,10 +55,16 @@ class TagDisplay(CheckListWidget):
     def add_tag(self):
         if self.model is None:
             return
-        dialog = add_tag_dialog(parent=self.parentWidget())
+        dialog = AddTagDialog(parent=self.parentWidget())
+        dialog.new_tags.connect(lambda x: self.update_list(x))
         dialog.exec_()
-        self.layoutChanged.emit()
-        self.update_caption()
+
+    def update_list(self, new_tags: set):
+        category_item = QListWidgetItem("User_tags")
+        category_item.setFlags(category_item.flags() & ~(Qt.ItemIsSelectable | Qt.ItemIsUserCheckable))
+        self.addItem(category_item)
+        for t in new_tags:
+            self.addItemState(t, True)
 
     def update_caption(self):
         curr_img = self.parent().current_image
@@ -77,7 +83,9 @@ class TagDisplay(CheckListWidget):
         pass
 
 
-class add_tag_dialog(QDialog):
+class AddTagDialog(QDialog):
+    new_tags = pyqtSignal(object)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.model = parent.model
@@ -95,7 +103,7 @@ class add_tag_dialog(QDialog):
         self.completer = MultiCompleter(self.parent().model.tags.keys())
         self.lineedit.setCompleter(self.completer)
 
-        self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
+        # self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
         button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
 
         tag_box = QHBoxLayout()
@@ -115,7 +123,7 @@ class add_tag_dialog(QDialog):
         """
         curr_img = self.parent().current_image
 
-        tags = [tag.strip() for tag in text.split(",")]
+        tags = {tag.strip() for tag in text.split(",")}
 
         df = self.model.state
 
@@ -134,3 +142,5 @@ class add_tag_dialog(QDialog):
             row_idx = df.index[df['filename'] == curr_img].tolist()
             if row_idx:
                 df.at[row_idx[0], t] = True
+
+        self.new_tags.emit(tags)
