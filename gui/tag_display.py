@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QWindow
 from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QCompleter, QPushButton, QHBoxLayout, QLineEdit, \
-    QLabel, QWidget, QListWidgetItem
+    QLabel, QWidget, QListWidgetItem, QTextEdit, QDialogButtonBox
 
 from gui.CheckListWidget import CheckListWidget
 from gui.gallery_model import ImageGalleryTableModel
@@ -80,7 +80,8 @@ class TagDisplay(CheckListWidget):
         pass
 
     def edit_caption(self):
-        pass
+        caption_window = CaptionWindow(self.parent())
+        caption_window.exec_()
 
 
 class AddTagDialog(QDialog):
@@ -144,3 +145,26 @@ class AddTagDialog(QDialog):
                 df.at[row_idx[0], t] = True
 
         self.new_tags.emit(tags)
+
+
+class CaptionWindow(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.model = parent.model
+        self.setWindowTitle("Edit Caption")
+
+        self.text_edit = QTextEdit()
+        self.text_edit.setText(self.model.results[self.parent().current_image]['training_caption'])
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.text_edit)
+        layout.addWidget(button_box)
+        self.setLayout(layout)
+
+    def accept(self):
+        self.model.results[self.parent().current_image]['training_caption'] = self.text_edit.toPlainText()
+        super().accept()
