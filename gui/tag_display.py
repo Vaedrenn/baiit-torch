@@ -77,10 +77,11 @@ class TagDisplay(CheckListWidget):
         self.model.results[curr_img]['training_caption'] = caption
 
     def view_caption(self):
-        pass
+        caption_window = CaptionWindow(self.parent(), readonly=True)
+        caption_window.show()
 
     def edit_caption(self):
-        caption_window = CaptionWindow(self.parent())
+        caption_window = CaptionWindow(self.parent(), readonly=False)
         caption_window.exec_()
 
 
@@ -148,14 +149,17 @@ class AddTagDialog(QDialog):
 
 
 class CaptionWindow(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, readonly=True):
         super().__init__(parent)
         self.model = parent.model
+        self.filename = parent.current_item.data()
         self.setWindowTitle("Edit Caption")
 
         self.text_edit = QTextEdit()
-        self.text_edit.setText(self.model.results[self.parent().current_image]['training_caption'])
-
+        self.text_edit.setText(self.model.results[self.filename]['training_caption'])
+        if readonly is True:
+            self.setWindowTitle("Caption")
+            self.text_edit.setReadOnly(True)
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
@@ -166,5 +170,5 @@ class CaptionWindow(QDialog):
         self.setLayout(layout)
 
     def accept(self):
-        self.model.results[self.parent().current_image]['training_caption'] = self.text_edit.toPlainText()
+        self.model.results[self.filename]['training_caption'] = self.text_edit.toPlainText()
         super().accept()

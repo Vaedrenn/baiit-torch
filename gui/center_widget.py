@@ -6,7 +6,7 @@ import shutil
 from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL.TiffImagePlugin import ImageFileDirectory_v2
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QFont
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidgetItem, QMessageBox, QFileDialog, QLabel
@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
 
 
 class CentralWidget(QWidget):
+    itemChanged = pyqtSignal(object)
     def __init__(self):
         super().__init__()
         self.threshold = {"rating": 0.5, "characters": 0.7, "general": 0.35}  # load from settings
@@ -35,7 +36,7 @@ class CentralWidget(QWidget):
         self.model = None
         self.model_folder = None  # cache
         self.tag_model = None
-        self.current_image = None
+        self.current_item = None
 
         self.searchbar = QLineEdit()
         self.filter_completer = QCompleter()
@@ -177,7 +178,7 @@ class CentralWidget(QWidget):
         :return: none
         """
         filename = item.data()
-        self.current_image = filename
+        self.current_item = item
 
         # Get the row of the corresponding item from the dataframe
         row = self.model.state[self.model.state['filename'] == filename]
@@ -200,6 +201,8 @@ class CentralWidget(QWidget):
                 list_item = QListWidgetItem(tag)
                 self.checklist.addItemState(list_item, state)
             self.checklist.addSpacer()
+
+        self.itemChanged.emit(item)
 
     def write_tags(self):
         """
