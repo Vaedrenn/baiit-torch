@@ -53,7 +53,7 @@ class TagDisplay(CheckListWidget):
         self.unCheckAll()
 
     def add_tag(self):
-        if self.model is None:
+        if self.model is None or self.parent().current_item is None:
             return
         dialog = AddTagDialog(parent=self.parentWidget())
         dialog.new_tags.connect(lambda x: self._update_list(x))
@@ -67,9 +67,9 @@ class TagDisplay(CheckListWidget):
             self.addItemState(t, True)
 
     def update_caption(self):
-        if self.model is None:
+        if self.model is None or self.parent().current_item is None:
             return
-        curr_img = self.parent().current_image
+        curr_img = self.parent().current_image.data()
         print(self.model.results[curr_img]['training_caption'])
 
         row = self.model.state[self.model.state['filename'] == curr_img]
@@ -79,13 +79,13 @@ class TagDisplay(CheckListWidget):
         self.model.results[curr_img]['training_caption'] = caption
 
     def view_caption(self):
-        if self.model is None:
+        if self.model is None or self.parent().current_item is None:
             return
         caption_window = CaptionWindow(self.parent(), readonly=True)
         caption_window.show()
 
     def edit_caption(self):
-        if self.model is None:
+        if self.model is None or self.parent().current_item is None:
             return
         caption_window = CaptionWindow(self.parent(), readonly=False)
         caption_window.exec_()
@@ -97,12 +97,13 @@ class AddTagDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.model = parent.model
+        self.curr_image = parent.current_item.data()
 
         self.setWindowTitle("Add Tags")
 
         main_layout = QVBoxLayout()
 
-        self.text = QLabel(f"Adding Tags to: {parent.current_image}")
+        self.text = QLabel(f"Adding Tags to: {self.curr_image}")
 
         self.lineedit = QLineEdit()
         self.lineedit.setPlaceholderText("  Separate each tag with a comma")
@@ -111,7 +112,7 @@ class AddTagDialog(QDialog):
         self.completer = MultiCompleter(self.parent().model.tags.keys())
         self.lineedit.setCompleter(self.completer)
 
-        # self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))
+        # self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))  # adds twice
         button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
 
         tag_box = QHBoxLayout()
@@ -129,7 +130,7 @@ class AddTagDialog(QDialog):
         Add new tags to the DataFrame and update the relevant image row.
         :param text: Comma-separated string of new tags.
         """
-        curr_img = self.parent().current_image
+        curr_img = self.curr_image
 
         tags = {tag.strip() for tag in text.split(",")}
 
