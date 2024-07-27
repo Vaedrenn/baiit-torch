@@ -165,6 +165,8 @@ class CaptionWindow(QDialog):
         self.text_edit = QTextEdit()
         self.text_edit.setText(self.model.results[self.filename]['training_caption'])
 
+        self.parent().itemChanged.connect(self.change_text)
+
         layout = QVBoxLayout()
         layout.addWidget(self.text_edit)
 
@@ -183,3 +185,7 @@ class CaptionWindow(QDialog):
     def accept(self):
         self.model.results[self.filename]['training_caption'] = self.text_edit.toPlainText()
         super().accept()
+
+    def change_text(self, item):
+        filename = item.data()
+        self.text_edit.setText(self.model.results[filename]['training_caption'])
