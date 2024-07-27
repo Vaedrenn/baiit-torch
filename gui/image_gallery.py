@@ -2,7 +2,10 @@ import os
 
 from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QDesktopServices, QFontMetrics
-from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QStyleOptionViewItem
+from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QStyleOptionViewItem, QMenu, \
+    QAction
+
+from gui.caption import CaptionWindow
 
 
 class ImageGallery(QListView):
@@ -21,6 +24,9 @@ class ImageGallery(QListView):
         self.verticalScrollBar().setSingleStep(50)
         self.setResizeMode(QListWidget.Adjust)  # Reorganize thumbnails on resize
         self.doubleClicked.connect(self.open_image)
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
 
     def open_image(self, index):
         """
@@ -49,6 +55,58 @@ class ImageGallery(QListView):
         new_grid_size = QSize(icon_size + new_spacing, 225)  # evenly distribute extra space
         self.setGridSize(new_grid_size)
 
+    def show_context_menu(self, position):
+        menu = QMenu()
+
+        select_all_action = QAction('Select All', self)
+        select_all_action.triggered.connect(self.selectAll)
+        menu.addAction(select_all_action)
+
+        deselect_all_action = QAction('Deselect All', self)
+        deselect_all_action.triggered.connect(self.clearSelection)
+        menu.addAction(deselect_all_action)
+
+        remove_selection_action = QAction('Remove From Results', self)
+        remove_selection_action.triggered.connect(self.remove_selected)
+        menu.addAction(remove_selection_action)
+
+        menu.addSeparator()
+
+        add_tag_action = QAction('Add Tag to Selected', self)
+        add_tag_action.triggered.connect(self.add_tag)
+        menu.addAction(add_tag_action)
+
+        menu.addSeparator()
+
+        view_caption_action = QAction('View Caption', self)
+        view_caption_action.triggered.connect(self.view_caption)
+        menu.addAction(view_caption_action)
+
+        menu.exec_(self.mapToGlobal(position))
+
+    def remove_selected(self):
+        pass
+
+    def add_tag(self):
+        if self.model is None or self.parent().current_item is None:
+            return
+        # dialog = AddTagDialog(parent=self.parentWidget())
+        # dialog.exec_()
+        # self.parent().update_page(self.parent().current_item)
+        pass
+
+    def view_caption(self):
+        if self.model is None or self.parent().current_item is None:
+            return
+        caption_window = CaptionWindow(self.parent(), readonly=True)
+        caption_window.show()
+
+    def edit_caption(self):
+        if self.model is None or self.parent().current_item is None:
+            return
+        caption_window = CaptionWindow(self.parent(), readonly=False)
+        caption_window.exec_()
+
 
 class ThumbnailDelegate(QStyledItemDelegate):
     """ Custom delegate for displaying images, removes check box and names for better formatting"""
@@ -71,4 +129,3 @@ class ThumbnailDelegate(QStyledItemDelegate):
 
         # Center the icon vertically
         option.decorationSize = QSize(200, 200)
-
