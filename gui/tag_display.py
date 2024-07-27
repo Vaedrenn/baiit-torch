@@ -56,15 +56,8 @@ class TagDisplay(CheckListWidget):
         if self.model is None or self.parent().current_item is None:
             return
         dialog = AddTagDialog(parent=self.parentWidget())
-        dialog.new_tags.connect(lambda x: self._update_list(x))
         dialog.exec_()
-
-    def _update_list(self, new_tags: set):
-        category_item = QListWidgetItem("User_tags")
-        category_item.setFlags(category_item.flags() & ~(Qt.ItemIsSelectable | Qt.ItemIsUserCheckable))
-        self.addItem(category_item)
-        for t in new_tags:
-            self.addItemState(t, True)
+        self.parent().update_page(self.parent().current_item)
 
     def update_caption(self):
         if self.model is None or self.parent().current_item is None:
@@ -134,6 +127,9 @@ class AddTagDialog(QDialog):
 
         tags = {tag.strip() for tag in text.split(",")}
 
+        if len(tags) == 0:
+            return
+
         df = self.model.state
 
         for t in tags:
@@ -153,7 +149,7 @@ class AddTagDialog(QDialog):
                 df.at[row_idx[0], t] = True
 
         self.new_tags.emit(tags)
-
+        self.accept()
 
 class CaptionWindow(QDialog):
     def __init__(self, parent=None, readonly=True):
