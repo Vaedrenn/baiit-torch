@@ -164,16 +164,20 @@ class CaptionWindow(QDialog):
 
         self.text_edit = QTextEdit()
         self.text_edit.setText(self.model.results[self.filename]['training_caption'])
-        if readonly is True:
-            self.setWindowTitle("Caption")
-            self.text_edit.setReadOnly(True)
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.reject)
 
         layout = QVBoxLayout()
         layout.addWidget(self.text_edit)
-        layout.addWidget(button_box)
+
+        if readonly is True:
+            self.setWindowTitle("Caption")
+            self.text_edit.setReadOnly(True)
+        else:
+            button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            button_box.accepted.connect(self.accept)
+            button_box.rejected.connect(self.reject)
+
+            layout.addWidget(button_box)
+
         self.setLayout(layout)
 
     def accept(self):
