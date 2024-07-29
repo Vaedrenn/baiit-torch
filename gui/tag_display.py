@@ -64,8 +64,7 @@ class TagDisplay(CheckListWidget):
     def update_caption(self):
         if self.model is None or self.parent().current_item is None:
             return
-        curr_img = self.parent().current_image.data()
-        print(self.model.results[curr_img]['training_caption'])
+        curr_img = self.parent().current_item.data()
 
         row = self.model.state[self.model.state['filename'] == curr_img]
         selected_columns = row.columns[row.iloc[0] == True]
@@ -95,6 +94,8 @@ class TagDisplay(CheckListWidget):
                 self.model.state.at[row_idx[0], item.text()] = True
             else:
                 self.model.state.at[row_idx[0], item.text()] = False
+
+        self.update_caption()
 
 class AddTagDialog(QDialog):
     new_tags = pyqtSignal(object)
