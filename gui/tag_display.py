@@ -1,3 +1,4 @@
+import pandas as pd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QLineEdit, \
     QLabel
@@ -10,11 +11,12 @@ from gui.multicompleter import MultiCompleter
 
 class TagDisplay(CheckListWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self):
         super().__init__()
         self.model = None
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
+        self.itemChanged.connect(lambda x: self.state_changed(x))
 
     def set_model(self, model: ImageGalleryTableModel):
         self.model = model
@@ -83,6 +85,16 @@ class TagDisplay(CheckListWidget):
         caption_window = CaptionWindow(self.parent(), readonly=False)
         caption_window.exec_()
 
+    def state_changed(self, item):
+        curr_img = self.parent().current_item.data()
+        df = self.model.state
+
+        row_idx = df.index[df['filename'] == curr_img].tolist()
+        if row_idx:
+            if item.checkState() == Qt.Checked:
+                self.model.state.at[row_idx[0], item.text()] = True
+            else:
+                self.model.state.at[row_idx[0], item.text()] = False
 
 class AddTagDialog(QDialog):
     new_tags = pyqtSignal(object)

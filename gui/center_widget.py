@@ -197,7 +197,7 @@ class CentralWidget(QWidget):
             self.checklist.addItem(category_item)
 
             for tag in tags.keys():
-                state = str(tag) in row_dict
+                state = row_dict[str(tag)]
                 list_item = QListWidgetItem(tag)
                 self.checklist.addItemState(list_item, state)
             self.checklist.addSpacer()
