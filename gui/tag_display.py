@@ -1,4 +1,3 @@
-import pandas as pd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QLineEdit, \
     QLabel
@@ -96,6 +95,7 @@ class TagDisplay(CheckListWidget):
                 self.model.state.at[row_idx[0], item.text()] = False
 
         self.update_caption()
+
 
 class AddTagDialog(QDialog):
     new_tags = pyqtSignal(object)

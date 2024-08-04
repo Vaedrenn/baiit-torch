@@ -1,9 +1,10 @@
 import os
+import shutil
 
 from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QDesktopServices, QFontMetrics
 from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QStyleOptionViewItem, QMenu, \
-    QAction
+    QAction, QFileDialog, QMessageBox
 
 from gui.caption import CaptionWindow
 
@@ -70,9 +71,13 @@ class ImageGallery(QListView):
         remove_selection_action.triggered.connect(self.remove_selected)
         menu.addAction(remove_selection_action)
 
+        move_action = QAction('Move Selection', self)
+        move_action.triggered.connect(self.move_selected)
+        menu.addAction(move_action)
+
         menu.addSeparator()
 
-        add_tag_action = QAction('Add Tag to Selected', self)
+        add_tag_action = QAction('Add Tag to Selection', self)
         add_tag_action.triggered.connect(self.add_tag)
         menu.addAction(add_tag_action)
 
@@ -106,6 +111,48 @@ class ImageGallery(QListView):
             return
         caption_window = CaptionWindow(self.parent(), readonly=False)
         caption_window.exec_()
+
+    def move_selected(self):
+        selected_rows = self.selectedIndexes()
+        num_files = len(selected_rows)
+
+        if num_files == 0:
+            return
+
+        target_dir = QFileDialog.getExistingDirectory(None, "Select Target Directory")
+        if target_dir == '':
+            return
+
+        # Create the target directory if it doesn't exist
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
+        confirmation = QMessageBox.question(
+            None,
+            "Confirm Move",
+            f"Do you want to move {num_files} files to {target_dir}?",
+            QMessageBox.Ok | QMessageBox.Cancel
+        )
+
+        if confirmation != QMessageBox.Ok:
+            return
+
+        # Move each file to the target directory
+        for f in selected_rows:
+            file_path = f.data()
+            file_name = os.path.basename(file_path)
+            destination_path = os.path.join(target_dir, file_name)
+            shutil.move(file_path, destination_path)
+
+            # update model info after moving, idk if I should remove this option
+            self.model().results[destination_path] = self.model().results.pop(file_path)
+            self.model().icons[destination_path] = self.model().icons.pop(file_path)
+            index = self.model().filenames.index(file_path)
+            self.model().filenames[index] = destination_path
+
+        # Deselect all selected rows
+        self.clearSelection()
+        QMessageBox.information(None, "Move Completed", f"Moved {num_files} files to {target_dir}")
 
 
 class ThumbnailDelegate(QStyledItemDelegate):

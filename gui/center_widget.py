@@ -9,7 +9,7 @@ from PIL.TiffImagePlugin import ImageFileDirectory_v2
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QFont
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
-    QLineEdit, QCompleter, QTextEdit, QStyleFactory, QMainWindow, QListWidgetItem, QMessageBox, QFileDialog, QLabel
+    QLineEdit, QCompleter, QStyleFactory, QMainWindow, QListWidgetItem, QMessageBox, QFileDialog, QLabel
 
 from gui.dark_palette import create_dark_palette
 from gui.filter_list import FilterList, FilterListModel
