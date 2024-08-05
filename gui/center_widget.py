@@ -129,6 +129,19 @@ class CentralWidget(QWidget):
     def process_results(self, data: dict):
         if data is None:
             return
+
+        # failed to load model
+        if data == -1:
+            return QMessageBox.critical(None, "Load Model Failed", "An error occurred: failed to load model")
+
+        # failed to load labels
+        if data == -2:
+            return QMessageBox.critical(None, "Load Label Failed", "An error occurred: failed to load labels")
+
+        # Empty Dir
+        if data == -3:
+            return QMessageBox.information(None, "Directory is Empty", "An error occurred: Directory is Empty")
+
         if hasattr(self, 'model') and self.model is not None:
             self.model.deleteLater()  # Delete the old model to free up memory
             self.tag_model.deleteLater()  # Delete the old model to free up memory

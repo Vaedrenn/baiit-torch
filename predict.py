@@ -16,7 +16,7 @@ def predict(model_path: str | os.PathLike,
             image_dir: str | os.PathLike,
             batch_size: int = 32,
             progress_callback=None
-            ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]] | None:
+            ) -> dict[Any, dict[str | Any, dict[Any, Any] | str]] | None | int:
     """
     Predicts tags for images in directory
     :param progress_callback: Helper Function for progress bar
@@ -36,18 +36,29 @@ def predict(model_path: str | os.PathLike,
     # Load model and labels
     model = load_model(model_path=model_path)
     if model is None:
-        return
+        if progress_callback:
+            progress_callback((100, "Failed to load model"))
+        return -1  # Failed to load model
+
     if progress_callback:
         progress_callback((5, "Loading Labels"))
 
     labels = load_labels(model_path=model_path, categories=categories)
     if labels is None or {}:
-        return
+        if progress_callback:
+            progress_callback((100, "Failed to load labels"))
+        return -2  # Failed to load labels
+
     if progress_callback:
         progress_callback((10, "Preprocessing Images"))
     transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
 
     processed_images = process_images_from_directory(model_path=model_path, directory=image_dir, transform=transform)
+    if len(processed_images) == 0:
+        if progress_callback:
+            progress_callback((100, "Finished"))
+        return -3
+
     if progress_callback:
         progress_callback((20, "Predicting Tags"))
 
