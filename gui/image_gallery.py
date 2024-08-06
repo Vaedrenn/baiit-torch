@@ -90,7 +90,42 @@ class ImageGallery(QListView):
         menu.exec_(self.mapToGlobal(position))
 
     def remove_selected(self):
-        pass
+        selected_rows = self.selectedIndexes()
+        num_files = len(selected_rows)
+
+        confirmation = QMessageBox.question(
+            None,
+            "Confirm Move",
+            f"Do you want to remove {num_files} items from the results?",
+            QMessageBox.Ok | QMessageBox.Cancel
+        )
+
+        if confirmation != QMessageBox.Ok:
+            return
+
+        model = self.model()
+        files_to_remove = [index.data() for index in selected_rows]
+
+        for file_path in files_to_remove:
+            # Remove from results and icons
+            model.results.pop(file_path, None)
+            model.icons.pop(file_path, None)
+
+            # Remove from filenames and filtered_filenames
+            if file_path in model.filenames:
+                model.filenames.remove(file_path)
+            if file_path in model.filtered_filenames:
+                model.filtered_filenames.remove(file_path)
+
+            # Drop row with corresponding filename from state and filtered_state
+            if not model.state.empty:
+                model.state = model.state[model.state['filename'] != file_path]
+            if not model.filtered_state.empty:
+                model.filtered_state = model.filtered_state[model.filtered_state['filename'] != file_path]
+
+        self.clearSelection()
+        self.parent().checklist.clear()
+        model.layoutChanged.emit()
 
     def add_tag(self):
         if self.model is None or self.parent().current_item is None:

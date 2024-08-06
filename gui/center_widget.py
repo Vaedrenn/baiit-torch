@@ -29,6 +29,7 @@ class MainWindow(QMainWindow):
 
 class CentralWidget(QWidget):
     itemChanged = pyqtSignal(object)
+
     def __init__(self):
         super().__init__()
         self.threshold = {"rating": 0.5, "characters": 0.7, "general": 0.35}  # load from settings
@@ -317,9 +318,10 @@ class CentralWidget(QWidget):
             self.model.icons[destination_path] = self.model.icons.pop(file_path)
             index = self.model.filenames.index(file_path)
             self.model.filenames[index] = destination_path
+            self.model.filtered_filenames[index] = destination_path
 
         # Deselect all selected rows
-        self.image_gallery.clearSelection()
+        # self.image_gallery.clearSelection()
         QMessageBox.information(None, "Move Completed", f"Moved {num_files} files to {target_dir}")
 
     def settings(self):
