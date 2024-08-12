@@ -181,8 +181,9 @@ class CentralWidget(QWidget):
     def clear_filter(self):
         self.filter_list.clearSelection()
         self.searchbar.clear()
-        self.model.filter(None)
-        self.tag_model.default()
+        if self.model is not None:
+            self.model.filter(None)
+            self.tag_model.default()
         self.filter_list.selected_items.clear()
 
     def update_page(self, item):
