@@ -6,7 +6,7 @@ from PyQt5.QtGui import QDesktopServices, QFontMetrics
 from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QStyleOptionViewItem, QMenu, \
     QAction, QFileDialog, QMessageBox
 
-from gui.caption import CaptionWindow
+from gui.dialog.caption_dialog import CaptionWindow
 
 
 class ImageGallery(QListView):

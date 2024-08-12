@@ -11,12 +11,13 @@ from PyQt5.QtGui import QIcon, QPixmap, QFont
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QVBoxLayout, \
     QLineEdit, QCompleter, QStyleFactory, QMainWindow, QListWidgetItem, QMessageBox, QFileDialog, QLabel
 
-from gui.dark_palette import create_dark_palette
-from gui.filter_list import FilterList, FilterListModel
-from gui.gallery_model import ImageGalleryTableModel
-from gui.image_gallery import ImageGallery
-from gui.multicompleter import MultiCompleter
-from gui.tag_display import TagDisplay
+from gui.palette.dark_palette import create_dark_palette
+from gui.filter_list_widget import FilterList
+from gui.model.filter_list_model import FilterListModel
+from gui.model.gallery_model import ImageGalleryTableModel
+from gui.image_gallery_widget import ImageGallery
+from gui.custom_components.multicompleter import MultiCompleter
+from gui.tag_display_widget import TagDisplay
 
 
 class MainWindow(QMainWindow):
@@ -103,12 +104,12 @@ class CentralWidget(QWidget):
 
     def add_buttons_to_navbar(self, navbar):
         buttons_info = [
-            ("Predict tags for images", "gui/ICONS/play.png", self.submit),
-            ("Write tags to file", "gui/ICONS/WRITE.png", self.write_tags),
-            ("Export tags", "gui/ICONS/EXPORT.png", self.export_tags),
-            ("Move images to folder", "gui/ICONS/MOVE.png", self.move_images),
-            ("Import tags", "gui/ICONS/GALLERY.png", self.import_tags),
-            ("Settings", "gui/ICONS/SETTINGS.png", self.settings)
+            ("Predict tags for images", "gui/icons/play.png", self.submit),
+            ("Write tags to file", "gui/icons/WRITE.png", self.write_tags),
+            ("Export tags", "gui/icons/EXPORT.png", self.export_tags),
+            ("Move images to folder", "gui/icons/MOVE.png", self.move_images),
+            ("Import tags", "gui/icons/GALLERY.png", self.import_tags),
+            ("Settings", "gui/icons/SETTINGS.png", self.settings)
         ]
 
         for tooltip, icon_path, callback in buttons_info:
@@ -122,7 +123,7 @@ class CentralWidget(QWidget):
             navbar.layout().addWidget(btn)
 
     def submit(self):
-        from gui.submit_dialog import ThresholdDialog
+        from gui.dialog.submit_dialog import ThresholdDialog
         dialog = ThresholdDialog(parent=self)
         dialog.results.connect(lambda x: self.process_results(x))
         dialog.exec_()

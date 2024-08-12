@@ -1,11 +1,9 @@
-import sys
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QSplitter, \
-    QSpinBox, QPushButton, QHBoxLayout, QCompleter, QLineEdit, QApplication
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSplitter, \
+    QHBoxLayout, QCompleter, QLineEdit
 
-from gui.tuplelistwidget import TupleCheckListWidget
+from gui.old.tuplelistwidget import TupleCheckListWidget
 
 
 class TagDisplayWidget(QWidget):

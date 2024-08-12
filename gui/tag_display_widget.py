@@ -2,10 +2,10 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QLineEdit, \
     QLabel
 
-from gui.CheckListWidget import CheckListWidget
-from gui.caption import CaptionWindow
-from gui.gallery_model import ImageGalleryTableModel
-from gui.multicompleter import MultiCompleter
+from gui.custom_components.CheckListWidget import CheckListWidget
+from gui.dialog.caption_dialog import CaptionWindow
+from gui.model.gallery_model import ImageGalleryTableModel
+from gui.custom_components.multicompleter import MultiCompleter
 
 
 class TagDisplay(CheckListWidget):
