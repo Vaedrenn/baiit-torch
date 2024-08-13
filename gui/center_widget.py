@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
 
 class CentralWidget(QWidget):
     itemChanged = pyqtSignal(object)
+    modelChanged = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -167,6 +168,8 @@ class CentralWidget(QWidget):
 
         if self.current_item:
             self.current_item = None
+
+        self.modelChanged.emit(self.model)
 
     def filter_images(self, text=None):
         # Get all tags selected from the tag list and remove (number)

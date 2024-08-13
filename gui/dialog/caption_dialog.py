@@ -36,3 +36,6 @@ class CaptionWindow(QDialog):
     def change_text(self, item):
         filename = item.data()
         self.text_edit.setText(self.model.results[filename]['training_caption'])
+
+    def model_changed(self, model):
+        self.model = model
