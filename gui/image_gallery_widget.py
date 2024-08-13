@@ -131,7 +131,7 @@ class ImageGallery(QListView):
     def add_tag(self):
         if self.model is None or self.parent().current_item is None:
             return
-        message = f"Adding Tags to: {self.curr_image}"
+        message = f"Adding Tags to: {len(self.selectedIndexes())} images"
         dialog = AddTagDialog(parent=self.parentWidget(), message=message)
         dialog.exec_()
         self.parent().update_page(self.parent().current_item)

@@ -58,10 +58,38 @@ class TagDisplay(CheckListWidget):
         message = f"Adding Tags to: {self.parent().current_item.data()}"
 
         dialog = AddTagDialog(parent=self.parentWidget(), message=message)
+        dialog.new_tags.connect(self.process_new_tags)
         dialog.exec_()
 
         self.parent().update_page(self.parent().current_item)
         self.update_caption()
+
+    def process_new_tags(self, text):
+        curr_img = self.parent().current_item.data()
+
+        tags = {tag.strip() for tag in text.split(",")}
+
+        if len(tags) == 0:
+            return
+
+        df = self.model.state
+
+        for t in tags:
+            if t not in self.model.tags.keys():
+                # add new column to the dataframe set all fields to False
+                df[t] = False
+
+            # if there is no field for user tags make one
+            if 'user_tags' not in self.model.results[curr_img].keys():
+                self.model.results[curr_img]['user_tags'] = {}
+
+            self.model.results[curr_img]['user_tags'][str(t)] = 1
+
+            # Find the row index of the current image and set the new tag to True
+            row_idx = df.index[df['filename'] == curr_img].tolist()
+            if row_idx:
+                df.at[row_idx[0], t] = True
+
 
     def update_caption(self):
         if self.model is None or self.parent().current_item is None:

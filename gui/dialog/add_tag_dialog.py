@@ -5,7 +5,7 @@ from gui.custom_components.multicompleter import MultiCompleter
 
 
 class AddTagDialog(QDialog):
-    new_tags = pyqtSignal(object)
+    new_tags = pyqtSignal(str)
 
     def __init__(self, message, parent=None,):
         super().__init__(parent)
@@ -38,34 +38,5 @@ class AddTagDialog(QDialog):
         self.setLayout(main_layout)
 
     def add_tag(self, text):
-        """
-        Add new tags to the DataFrame and update the relevant image row.
-        :param text: Comma-separated string of new tags.
-        """
-        curr_img = self.curr_image
-
-        tags = {tag.strip() for tag in text.split(",")}
-
-        if len(tags) == 0:
-            return
-
-        df = self.model.state
-
-        for t in tags:
-            if t not in self.model.tags.keys():
-                # add new column to the dataframe set all fields to False
-                df[t] = False
-
-            # if there is no field for user tags make one
-            if 'user_tags' not in self.model.results[curr_img].keys():
-                self.model.results[curr_img]['user_tags'] = {}
-
-            self.model.results[curr_img]['user_tags'][str(t)] = 1
-
-            # Find the row index of the current image and set the new tag to True
-            row_idx = df.index[df['filename'] == curr_img].tolist()
-            if row_idx:
-                df.at[row_idx[0], t] = True
-
-        self.new_tags.emit(tags)
+        self.new_tags.emit(text)
         self.accept()
