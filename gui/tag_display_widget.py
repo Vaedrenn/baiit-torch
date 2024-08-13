@@ -90,7 +90,6 @@ class TagDisplay(CheckListWidget):
             if row_idx:
                 df.at[row_idx[0], t] = True
 
-
     def update_caption(self):
         if self.model is None or self.parent().current_item is None:
             return

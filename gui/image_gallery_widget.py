@@ -129,13 +129,51 @@ class ImageGallery(QListView):
         model.layoutChanged.emit()
 
     def add_tag(self):
-        if self.model is None or self.parent().current_item is None:
+        if self.model is None or len(self.selectedIndexes()) == 0:
             return
         message = f"Adding Tags to: {len(self.selectedIndexes())} images"
         dialog = AddTagDialog(parent=self.parentWidget(), message=message)
+        dialog.new_tags.connect(self.process_new_tags)
         dialog.exec_()
         self.parent().update_page(self.parent().current_item)
-        pass
+
+    def process_new_tags(self, text):
+
+        for item in self.selectedIndexes():
+            image = item.data()
+
+            tags = {tag.strip() for tag in text.split(",")}
+
+            if len(tags) == 0:
+                return
+
+            df = self.model().state
+
+            for t in tags:
+                if t not in self.model().tags.keys():
+                    # add new column to the dataframe set all fields to False
+                    df[t] = False
+
+                # if there is no field for user tags make one
+                if 'user_tags' not in self.model().results[image].keys():
+                    self.model().results[image]['user_tags'] = {}
+
+                self.model().results[image]['user_tags'][str(t)] = 1
+
+                # Find the row index of the current image and set the new tag to True
+                row_idx = df.index[df['filename'] == image].tolist()
+                if row_idx:
+                    df.at[row_idx[0], t] = True
+                self.update_caption(item)
+
+    def update_caption(self, item):
+        curr_img = item.data()
+
+        row = self.model().state[self.model().state['filename'] == curr_img]
+        selected_columns = row.columns[row.iloc[0] == True]
+        caption = ', '.join(selected_columns)
+
+        self.model().results[curr_img]['training_caption'] = caption
 
     def view_caption(self):
         if self.model is None or self.parent().current_item is None:
