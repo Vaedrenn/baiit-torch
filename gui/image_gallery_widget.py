@@ -6,6 +6,7 @@ from PyQt5.QtGui import QDesktopServices, QFontMetrics
 from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListView, QStyledItemDelegate, QStyleOptionViewItem, QMenu, \
     QAction, QFileDialog, QMessageBox
 
+from gui.dialog.add_tag_dialog import AddTagDialog
 from gui.dialog.caption_dialog import CaptionWindow
 
 
@@ -130,9 +131,10 @@ class ImageGallery(QListView):
     def add_tag(self):
         if self.model is None or self.parent().current_item is None:
             return
-        # dialog = AddTagDialog(parent=self.parentWidget())
-        # dialog.exec_()
-        # self.parent().update_page(self.parent().current_item)
+        message = f"Adding Tags to: {self.curr_image}"
+        dialog = AddTagDialog(parent=self.parentWidget(), message=message)
+        dialog.exec_()
+        self.parent().update_page(self.parent().current_item)
         pass
 
     def view_caption(self):

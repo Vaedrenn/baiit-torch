@@ -1,11 +1,10 @@
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QMenu, QAction, QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QLineEdit, \
-    QLabel
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMenu, QAction
 
+from gui.dialog.add_tag_dialog import AddTagDialog
 from gui.custom_components.CheckListWidget import CheckListWidget
 from gui.dialog.caption_dialog import CaptionWindow
 from gui.model.gallery_model import ImageGalleryTableModel
-from gui.custom_components.multicompleter import MultiCompleter
 
 
 class TagDisplay(CheckListWidget):
@@ -56,9 +55,13 @@ class TagDisplay(CheckListWidget):
     def add_tag(self):
         if self.model is None or self.parent().current_item is None:
             return
-        dialog = AddTagDialog(parent=self.parentWidget())
+        message = f"Adding Tags to: {self.parent().current_item.data()}"
+
+        dialog = AddTagDialog(parent=self.parentWidget(), message=message)
         dialog.exec_()
+
         self.parent().update_page(self.parent().current_item)
+        self.update_caption()
 
     def update_caption(self):
         if self.model is None or self.parent().current_item is None:
@@ -95,71 +98,3 @@ class TagDisplay(CheckListWidget):
                 self.model.state.at[row_idx[0], item.text()] = False
 
         self.update_caption()
-
-
-class AddTagDialog(QDialog):
-    new_tags = pyqtSignal(object)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.model = parent.model
-        self.curr_image = parent.current_item.data()
-
-        self.setWindowTitle("Add Tags")
-
-        main_layout = QVBoxLayout()
-
-        self.text = QLabel(f"Adding Tags to: {self.curr_image}")
-
-        self.lineedit = QLineEdit()
-        self.lineedit.setPlaceholderText("  Separate each tag with a comma")
-        button = QPushButton("Add Tag")
-
-        self.completer = MultiCompleter(self.parent().model.tags.keys())
-        self.lineedit.setCompleter(self.completer)
-
-        # self.lineedit.returnPressed.connect(lambda: self.add_tag(self.lineedit.text()))  # adds twice
-        button.clicked.connect(lambda: self.add_tag(self.lineedit.text()))
-
-        tag_box = QHBoxLayout()
-        tag_box.addWidget(self.lineedit)
-        tag_box.addWidget(button)
-        tag_box.setContentsMargins(0, 0, 0, 0)
-
-        main_layout.addWidget(self.text)
-
-        main_layout.addLayout(tag_box)
-        self.setLayout(main_layout)
-
-    def add_tag(self, text):
-        """
-        Add new tags to the DataFrame and update the relevant image row.
-        :param text: Comma-separated string of new tags.
-        """
-        curr_img = self.curr_image
-
-        tags = {tag.strip() for tag in text.split(",")}
-
-        if len(tags) == 0:
-            return
-
-        df = self.model.state
-
-        for t in tags:
-            if t not in self.model.tags.keys():
-                # add new column to the dataframe set all fields to False
-                df[t] = False
-
-            # if there is no field for user tags make one
-            if 'user_tags' not in self.model.results[curr_img].keys():
-                self.model.results[curr_img]['user_tags'] = {}
-
-            self.model.results[curr_img]['user_tags'][str(t)] = 1
-
-            # Find the row index of the current image and set the new tag to True
-            row_idx = df.index[df['filename'] == curr_img].tolist()
-            if row_idx:
-                df.at[row_idx[0], t] = True
-
-        self.new_tags.emit(tags)
-        self.accept()

@@ -165,6 +165,9 @@ class CentralWidget(QWidget):
 
         self.checklist.set_model(self.model)
 
+        if self.current_item:
+            self.current_item = None
+
     def filter_images(self, text=None):
         # Get all tags selected from the tag list and remove (number)
         selected_tags = self.filter_list.selected_items
@@ -259,6 +262,8 @@ class CentralWidget(QWidget):
             except RuntimeError as e:
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
                 return None
+        if self.current_item:
+            self.current_item = None
 
     def _tensor_to_json(self, obj):
         from torch import Tensor
