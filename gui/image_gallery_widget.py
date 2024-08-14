@@ -93,6 +93,8 @@ class ImageGallery(QListView):
     def remove_selected(self):
         selected_rows = self.selectedIndexes()
         num_files = len(selected_rows)
+        if num_files == 0:
+            return
 
         confirmation = QMessageBox.question(
             None,
