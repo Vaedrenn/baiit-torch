@@ -76,6 +76,7 @@ class ThresholdDialog(QDialog):
         main_layout.addLayout(button_layout)
 
         self.setLayout(main_layout)
+        self.setPalette(self.parent().palette())
 
     def browse_directory(self, line_edit):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")

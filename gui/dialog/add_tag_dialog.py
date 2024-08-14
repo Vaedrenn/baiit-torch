@@ -36,6 +36,8 @@ class AddTagDialog(QDialog):
 
         main_layout.addLayout(tag_box)
         self.setLayout(main_layout)
+        self.setMinimumWidth(300)
+        self.setPalette(self.parent().palette())
 
     def add_tag(self, text):
         self.new_tags.emit(text)
