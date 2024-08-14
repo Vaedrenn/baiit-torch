@@ -153,6 +153,7 @@ class ImageGallery(QListView):
                 if t not in self.model().tags.keys():
                     # add new column to the dataframe set all fields to False
                     df[t] = False
+                    self.model().tags[t] = 1
 
                 # if there is no field for user tags make one
                 if 'user_tags' not in self.model().results[image].keys():
@@ -167,13 +168,13 @@ class ImageGallery(QListView):
                 self.update_caption(item)
 
     def update_caption(self, item):
-        curr_img = item.data()
+        filename = item.data()
 
-        row = self.model().state[self.model().state['filename'] == curr_img]
+        row = self.model().state[self.model().state['filename'] == filename]
         selected_columns = row.columns[row.iloc[0] == True]
         caption = ', '.join(selected_columns)
 
-        self.model().results[curr_img]['training_caption'] = caption
+        self.model().results[filename]['training_caption'] = caption
 
     def view_caption(self):
         if self.model is None or self.parent().current_item is None:
