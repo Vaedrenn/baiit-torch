@@ -76,6 +76,7 @@ class ThresholdDialog(QDialog):
         main_layout.addLayout(button_layout)
 
         self.setLayout(main_layout)
+        self.setPalette(self.parent().palette())
 
     def browse_directory(self, line_edit):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
@@ -113,6 +114,7 @@ class ThresholdDialog(QDialog):
         self.progress_dialog.setWindowTitle("Progress")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
         self.progress_dialog.canceled.connect(self.thread.terminate)
+        self.progress_dialog.setPalette(self.parent().palette())
         self.progress_dialog.show()
 
     @pyqtSlot(object)

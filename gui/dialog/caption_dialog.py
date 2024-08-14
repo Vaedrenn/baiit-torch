@@ -28,6 +28,7 @@ class CaptionWindow(QDialog):
             layout.addWidget(button_box)
 
         self.setLayout(layout)
+        self.setPalette(self.parent().palette())
 
     def accept(self):
         self.model.results[self.filename]['training_caption'] = self.text_edit.toPlainText()
