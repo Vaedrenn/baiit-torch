@@ -1,11 +1,9 @@
-from PyQt5.QtCore import pyqtSignal, QThread, pyqtSlot, Qt
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, \
-    QLineEdit, QFileDialog, QProgressBar
-
+from PyQt5.QtCore import Qt
 
 from PyQt5.QtCore import pyqtSignal, QThread, pyqtSlot
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QSpinBox, QPushButton, QLabel, \
     QLineEdit, QFileDialog, QProgressDialog
+
 
 class ThresholdDialog(QDialog):
     results = pyqtSignal(object)  # Define the signal at the class level
