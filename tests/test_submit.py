@@ -36,7 +36,7 @@ class TestMainWindow(TestCase):
         def close_dialog():
             for widget in QApplication.topLevelWidgets():
                 if isinstance(widget, QDialog) and widget.windowTitle() == "Set Thresholds":
-                    widget.accept()  # Use accept() to close the dialog
+                    widget.reject()  # Use accept() to close the dialog
                     break
 
         QTimer.singleShot(1000, close_dialog)  # Close dialog after 1 second
@@ -67,12 +67,18 @@ class TestMainWindow(TestCase):
         self.assertEqual(thresholds[category], new_value / 100.0,
                          f"{category} threshold was not updated correctly.")
 
+        # Test changing the inputs
+        dialog.model_input.setText("wd-vit-tagger-v3")
+        self.assertEqual(dialog.model_input.text(), "wd-vit-tagger-v3")
+
+        dialog.dir_input.setText("images")
+        self.assertEqual(dialog.dir_input.text(), "images")
+
         # Since the dialog is modal and blocks, the test will only continue after the dialog is closed
         # Add an assertion to verify the dialog was successfully closed
         for widget in QApplication.topLevelWidgets():
             if isinstance(widget, QDialog) and widget.windowTitle() == "Set Thresholds":
                 self.assertFalse(widget.isVisible(), "ThresholdDialog is still visible!")
-
 
 
 if __name__ == "__main__":
