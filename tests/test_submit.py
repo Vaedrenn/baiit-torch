@@ -124,14 +124,15 @@ class TestMainWindow(TestCase):
         # Start the event loop and wait for the results
         self.event_loop.exec_()
 
-        # Check if test_images are displayed
+        # Check if images are displayed
         image_gallery = self.window.center_widget.image_gallery
-        self.assertGreater(image_gallery.model().rowCount(), 0, "No test_images are displayed in the gallery!")
+        self.assertGreater(image_gallery.model().rowCount(), 0, "No images are displayed in the gallery!")
 
         first_item = image_gallery.model().index(0).data(role=Qt.DisplayRole)
-        self.assertEqual(first_item, "test_images\\Jan_van_der_Heyden-View_Down_a_Canal.jpg", "First image path does not match!")
+        self.assertEqual(first_item, "images\\Reiner_Nooms-Amsterdam_Harbor_Scene.jpg", "First image path does not match!")
 
         # Click on first image and see if tags are properly displayed on tag list
+
 
         # Test deselect all
 
