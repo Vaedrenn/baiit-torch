@@ -133,7 +133,29 @@ class TestMainWindow(TestCase):
         # self.assertEqual(first_item.data(role=Qt.DisplayRole), "images\\Jan_van_der_Heyden-View_Down_a_Canal.jpg", "First image path does not match!")
 
         # Click on first image and see if tags are properly displayed on tag list
+        first_item = image_gallery.model().index(0)
+        rect = image_gallery.visualRect(first_item)
+        QTest.mouseClick(image_gallery.viewport(), Qt.LeftButton, pos=rect.center())
+        image_name = first_item.data(role=Qt.DisplayRole)
 
+        with open("test results.json", 'r') as infile:
+            real_results = json.load(infile)
+
+        result = real_results[image_name]
+        test_tags = result['training_caption'].split(", ")
+
+        checklist = self.window.center_widget.checklist
+        items = [checklist.item(x) for x in range(checklist.count())]
+        tags = []
+        categories = []
+        for i in items:
+            # Check if both Qt.ItemIsSelectable and Qt.ItemIsUserCheckable flags are set
+            if (i.flags() & Qt.ItemIsSelectable) and (i.flags() & Qt.ItemIsUserCheckable):
+                tags.append(i.data(Qt.DisplayRole))
+            else:
+                categories.append(i.data(Qt.DisplayRole))
+
+        self.assertEqual(len(test_tags), len(tags), "Tag counts don't line up")
 
         # Test deselect all
 
