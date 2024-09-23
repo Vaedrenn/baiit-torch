@@ -153,12 +153,20 @@ class TestMainWindow(TestCase):
 
         self.assertEqual(len(test_tags), len(tags), "Tag counts don't line up")
 
+        # test if all the tags from the json are in the checklist, also check if there's a tag that should not be there
+        for t in test_tags:
+            self.assertTrue(t in tags, f"{t} is not found in test_tags: {test_tags}")
+
+        for t in tags:
+            self.assertTrue(t in test_tags, f"{t} is not found in test_tags: {tags}")
+
+        # Check if tag is being displayed as a category
         widget_categories = self.window.center_widget.categories
-        print(widget_categories)
         for category in categories:
             if category is not None and category != "None":
                 self.assertTrue(str(category).lower() in widget_categories,
                                 f"There's a tag: {category.lower()} that shouldn't be in categories")
+
 
         # Test deselect all
 
