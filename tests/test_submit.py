@@ -128,10 +128,6 @@ class TestMainWindow(TestCase):
         image_gallery = self.window.center_widget.image_gallery
         self.assertGreater(image_gallery.model().rowCount(), 0, "No images are displayed in the gallery!")
 
-        # Due to race conditions this test will always be inconsistent
-        # first_item = image_gallery.model().index(0)
-        # self.assertEqual(first_item.data(role=Qt.DisplayRole), "images\\Jan_van_der_Heyden-View_Down_a_Canal.jpg", "First image path does not match!")
-
         # Click on first image and see if tags are properly displayed on tag list
         first_item = image_gallery.model().index(0)
         rect = image_gallery.visualRect(first_item)
@@ -156,6 +152,13 @@ class TestMainWindow(TestCase):
                 categories.append(i.data(Qt.DisplayRole))
 
         self.assertEqual(len(test_tags), len(tags), "Tag counts don't line up")
+
+        widget_categories = self.window.center_widget.categories
+        print(widget_categories)
+        for category in categories:
+            if category is not None and category != "None":
+                self.assertTrue(str(category).lower() in widget_categories,
+                                f"There's a tag: {category.lower()} that shouldn't be in categories")
 
         # Test deselect all
 
