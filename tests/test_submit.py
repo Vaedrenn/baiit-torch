@@ -7,6 +7,39 @@ from unittest import TestCase
 from gui.center_widget import MainWindow
 
 
+def find_dialog(title):
+    """
+    Find the dialog by its window title.
+    """
+    for widget in QApplication.topLevelWidgets():
+        if isinstance(widget, QDialog) and widget.windowTitle() == title:
+            return widget
+    return None
+
+
+def submit_dialog_interaction():
+    """
+    Set up a QTimer to simulate user interaction with the dialog.
+    """
+
+    def interaction():
+        for widget in QApplication.topLevelWidgets():
+            if isinstance(widget, QDialog) and widget.windowTitle() == "Set Thresholds":
+                widget.model_input.setText(r"wd-vit-tagger-v3")
+                widget.dir_input.setText(r"images")
+                widget.confirm_button.click()
+                break
+
+    QTimer.singleShot(1000, interaction)
+
+
+def flag_check(item):
+    """
+    Check if both Qt.ItemIsSelectable and Qt.ItemIsUserCheckable flags are set.
+    """
+    return (item.flags() & Qt.ItemIsSelectable) and (item.flags() & Qt.ItemIsUserCheckable)
+
+
 class TestMainWindow(TestCase):
     def setUp(self):
         self.app = QApplication(sys.argv)
@@ -83,124 +116,154 @@ class TestMainWindow(TestCase):
 
     def test_submit_results(self):
         """
-        Test if the submit dialog shows up and waits for the results.
+        Main test to handle the overall flow: submit, interaction, and result verification.
         """
         self.window.show()
-        # Find the submit button in the navigation bar
-        submit_button = None
-        for btn in self.window.center_widget.findChildren(QPushButton):
-            if btn.toolTip() == "Predict tags for images":
-                submit_button = btn
-                break
 
-        # Assert that the submit button was found
+        submit_button = self.find_submit_button()
         self.assertIsNotNone(submit_button, "Submit button not found!")
 
-        # Set up a QTimer to simulate user interaction with the dialog
-        def simulate_dialog_interaction():
-            for widget in QApplication.topLevelWidgets():
-                if isinstance(widget, QDialog) and widget.windowTitle() == "Set Thresholds":
-                    widget.model_input.setText(r"wd-vit-tagger-v3")
-                    widget.dir_input.setText(r"images")
-                    widget.confirm_button.click()  # Close the dialog
-                    break
-
-        QTimer.singleShot(1000, simulate_dialog_interaction)  # Simulate interaction after 1 second
-
-        # Simulate a button click to open the dialog
+        # Simulate interaction with the submit dialog
+        submit_dialog_interaction()
         QTest.mouseClick(submit_button, Qt.LeftButton)
+        self.wait_for_results()
 
-        # Connect the results signal to a slot that will stop the event loop
+        # Validate displayed images and tag processing
+        self.verify_results()
+
+        # Test adding a caption
+        self.test_add_tags()
+
+        # Test if new items follow convention
+        self.check_tag_convention()
+
+        # Placeholder for other tests: view, edit caption, and filters
+        self.test_view_caption()
+        self.test_edit_caption()
+        self.test_filter()
+
+    # ---- Helper Methods ----
+
+    def find_submit_button(self):
+        """
+        Find the submit button in the navigation bar.
+        """
+        for btn in self.window.center_widget.findChildren(QPushButton):
+            if btn.toolTip() == "Predict tags for images":
+                return btn
+        return None
+
+    def wait_for_results(self):
+        """
+        Connect the results signal to a slot that will stop the event loop.
+        """
+
         def handle_results(results):
             self.check_results(results)
-            self.event_loop.quit()  # Stop the event loop
+            self.event_loop.quit()
 
-        dialog = None
-        for widget in QApplication.topLevelWidgets():
-            if isinstance(widget, QDialog) and widget.windowTitle() == "Set Thresholds":
-                dialog = widget
-
+        dialog = find_dialog("Set Thresholds")
         dialog.results.connect(handle_results)
-
-        # Start the event loop and wait for the results
         self.event_loop.exec_()
 
-        # Check if images are displayed
+    def verify_results(self):
+        """
+        Verify if images are displayed in the gallery.
+        """
         image_gallery = self.window.center_widget.image_gallery
         self.assertGreater(image_gallery.model().rowCount(), 0, "No images are displayed in the gallery!")
 
-        # Click on first image and see if tags are properly displayed on tag list
         first_item = image_gallery.model().index(0)
         rect = image_gallery.visualRect(first_item)
         QTest.mouseClick(image_gallery.viewport(), Qt.LeftButton, pos=rect.center())
-        image_name = first_item.data(role=Qt.DisplayRole)
+        self.compare_data(first_item.data(role=Qt.DisplayRole))
 
+    def compare_data(self, image_name):
+        """
+        Compare tags from JSON file with the UI.
+        """
         with open("test results.json", 'r') as infile:
             real_results = json.load(infile)
 
         result = real_results[image_name]
         test_tags = result['training_caption'].split(", ")
 
+        # Check JSON data against data displayed in checklist
         checklist = self.window.center_widget.checklist
         items = [checklist.item(x) for x in range(checklist.count())]
-        tags = []
-        categories = []
-        for i in items:
-            # Check if both Qt.ItemIsSelectable and Qt.ItemIsUserCheckable flags are set
-            if (i.flags() & Qt.ItemIsSelectable) and (i.flags() & Qt.ItemIsUserCheckable):
-                tags.append(i.data(Qt.DisplayRole))
-            else:
-                categories.append(i.data(Qt.DisplayRole))
+        tags = [i.data(Qt.DisplayRole) for i in items if flag_check(i)]
+        categories = [i.data(Qt.DisplayRole) for i in items if not flag_check(i)]
 
         self.assertEqual(len(test_tags), len(tags), "Tag counts don't line up")
 
-        # test if all the tags from the json are in the checklist, also check if there's a tag that should not be there
         for t in test_tags:
-            self.assertTrue(t in tags, f"{t} is not found in test_tags: {test_tags}")
+            self.assertIn(t, tags, f"{t} is not found in test_tags: {test_tags}")
 
         for t in tags:
-            self.assertTrue(t in test_tags, f"{t} is not found in tags: {tags}")
+            self.assertIn(t, test_tags, f"{t} is not found in tags: {tags}")
 
-        # Check if tag is being displayed as a category
+        self.verify_categories(categories)
+
+    def verify_categories(self, categories):
+        """
+        Check if tag is being displayed as a category.
+        """
         widget_categories = self.window.center_widget.categories
         for category in categories:
-            if category is not None and category != "None":
-                self.assertTrue(str(category).lower() in widget_categories,
-                                f"There's a tag: {category.lower()} that shouldn't be in categories")
+            if category and category != "None":
+                self.assertIn(str(category).lower(), widget_categories,
+                              f"Tag {category.lower()} shouldn't be in categories")
 
-        # Test add caption
-        def add_dialog_interaction():
+    def test_add_tags(self):
+        """
+        Test the functionality to add a tag.
+        """
+
+        def dialog_interaction():
             for widget in QApplication.topLevelWidgets():
                 if isinstance(widget, QDialog) and widget.windowTitle() == "Add Tags":
                     widget.lineedit.setText("test tag")
                     self.assertEqual(widget.lineedit.text(), "test tag", "Line edit did not contain expected text")
-
                     QTest.mouseClick(widget.add_button, Qt.LeftButton)
-
-                    # Process the events to ensure the dialog gets the input
                     QApplication.processEvents()
                     break
 
-        QTimer.singleShot(500, add_dialog_interaction)  # Schedule the interaction with the dialog
-
+        QTimer.singleShot(500, dialog_interaction)  # Needed to interact with dialogs
+        checklist = self.window.center_widget.checklist
         checklist.add_tag()
+
         items = [checklist.item(x).data(Qt.DisplayRole) for x in range(checklist.count())]
-        self.assertTrue("test tag" in items)
+        self.assertIn("test tag", items)
 
-        # Check if new items follows the convention: spacer, category, tags
-        length = len(items)-1
-        spacer_idx = length - 3
-        user_tag_idx = length - 2
-        test_tag_idx = length - 1
-        self.assertEqual(items[spacer_idx], None)
-        self.assertEqual(items[user_tag_idx], "User_tags")
-        self.assertEqual(items[test_tag_idx], "test tag")
+    def check_tag_convention(self):
+        """
+        Check if the new items follow the expected convention: spacer, category, tags.
+        """
+        checklist = self.window.center_widget.checklist
+        items = [checklist.item(x).data(Qt.DisplayRole) for x in range(checklist.count())]
 
-        # Test view caption
+        length = len(items) - 1
+        self.assertEqual(items[length - 3], None)
+        self.assertEqual(items[length - 2], "User_tags")
+        self.assertEqual(items[length - 1], "test tag")
 
-        # Test edit caption
+    def test_view_caption(self):
+        """
+        Placeholder for testing the 'view caption' functionality.
+        """
+        pass
 
-        # Test if filter works
+    def test_edit_caption(self):
+        """
+        Placeholder for testing the 'edit caption' functionality.
+        """
+        pass
+
+    def test_filter(self):
+        """
+        Placeholder for testing the filter functionality.
+        """
+        pass
 
     def check_results(self, results):
         # Convert results to a serializable format
