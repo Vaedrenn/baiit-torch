@@ -184,6 +184,8 @@ class TestMainWindow(TestCase):
         QTimer.singleShot(500, add_dialog_interaction)  # Schedule the interaction with the dialog
 
         checklist.add_tag()
+        items = [checklist.item(x).data(Qt.DisplayRole) for x in range(checklist.count())]
+        self.assertTrue("test tag" in items)
 
         # Test view caption
 
