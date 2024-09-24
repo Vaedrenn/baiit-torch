@@ -187,6 +187,15 @@ class TestMainWindow(TestCase):
         items = [checklist.item(x).data(Qt.DisplayRole) for x in range(checklist.count())]
         self.assertTrue("test tag" in items)
 
+        # Check if new items follows the convention: spacer, category, tags
+        length = len(items)-1
+        spacer_idx = length - 3
+        user_tag_idx = length - 2
+        test_tag_idx = length - 1
+        self.assertEqual(items[spacer_idx], None)
+        self.assertEqual(items[user_tag_idx], "User_tags")
+        self.assertEqual(items[test_tag_idx], "test tag")
+
         # Test view caption
 
         # Test edit caption
