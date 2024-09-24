@@ -45,6 +45,8 @@ class TestMainWindow(TestCase):
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
         self.event_loop = QEventLoop()
+        with open("test results.json", 'r') as infile:
+            self.real_results = json.load(infile)
 
     def tearDown(self):
         self.window.close()
@@ -133,8 +135,6 @@ class TestMainWindow(TestCase):
 
         # Test adding a caption
         self.test_add_tags()
-
-        # Test if new items follow convention
         self.check_tag_convention()
 
         # Placeholder for other tests: view, edit caption, and filters
@@ -176,16 +176,13 @@ class TestMainWindow(TestCase):
         first_item = image_gallery.model().index(0)
         rect = image_gallery.visualRect(first_item)
         QTest.mouseClick(image_gallery.viewport(), Qt.LeftButton, pos=rect.center())
-        self.compare_data(first_item.data(role=Qt.DisplayRole))
+        self.compare_results(first_item.data(role=Qt.DisplayRole))
 
-    def compare_data(self, image_name):
+    def compare_results(self, image_name):
         """
         Compare tags from JSON file with the UI.
         """
-        with open("test results.json", 'r') as infile:
-            real_results = json.load(infile)
-
-        result = real_results[image_name]
+        result = self.real_results[image_name]
         test_tags = result['training_caption'].split(", ")
 
         # Check JSON data against data displayed in checklist
@@ -269,9 +266,7 @@ class TestMainWindow(TestCase):
         # Convert results to a serializable format
         serializable_results = _tensor_to_json(results)
 
-        with open("test results.json", 'r') as infile:
-            real_results = json.load(infile)
-            self.assertEqual(serializable_results, real_results)
+        self.assertEqual(serializable_results, self.real_results)
 
 
 def _tensor_to_json(obj):
