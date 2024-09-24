@@ -1,8 +1,8 @@
 import json
 import sys
-from PyQt5.QtWidgets import QApplication, QPushButton, QDialog
+from PyQt5.QtWidgets import QApplication, QPushButton, QDialog, QMenu
 from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt, QTimer, QEventLoop
+from PyQt5.QtCore import Qt, QTimer, QEventLoop, QPoint
 from unittest import TestCase
 from gui.center_widget import MainWindow
 
@@ -85,6 +85,7 @@ class TestMainWindow(TestCase):
         """
         Test if the submit dialog shows up and waits for the results.
         """
+        self.window.show()
         # Find the submit button in the navigation bar
         submit_button = None
         for btn in self.window.center_widget.findChildren(QPushButton):
@@ -158,7 +159,7 @@ class TestMainWindow(TestCase):
             self.assertTrue(t in tags, f"{t} is not found in test_tags: {test_tags}")
 
         for t in tags:
-            self.assertTrue(t in test_tags, f"{t} is not found in test_tags: {tags}")
+            self.assertTrue(t in test_tags, f"{t} is not found in tags: {tags}")
 
         # Check if tag is being displayed as a category
         widget_categories = self.window.center_widget.categories
@@ -167,12 +168,22 @@ class TestMainWindow(TestCase):
                 self.assertTrue(str(category).lower() in widget_categories,
                                 f"There's a tag: {category.lower()} that shouldn't be in categories")
 
-
-        # Test deselect all
-
-        # Test select all
-
         # Test add caption
+        def add_dialog_interaction():
+            for widget in QApplication.topLevelWidgets():
+                if isinstance(widget, QDialog) and widget.windowTitle() == "Add Tags":
+                    widget.lineedit.setText("test tag")
+                    self.assertEqual(widget.lineedit.text(), "test tag", "Line edit did not contain expected text")
+
+                    QTest.mouseClick(widget.add_button, Qt.LeftButton)
+
+                    # Process the events to ensure the dialog gets the input
+                    QApplication.processEvents()
+                    break
+
+        QTimer.singleShot(500, add_dialog_interaction)  # Schedule the interaction with the dialog
+
+        checklist.add_tag()
 
         # Test view caption
 
