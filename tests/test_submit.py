@@ -240,7 +240,7 @@ class TestMainWindow(TestCase):
         self.assertEqual(items[length - 2], "User_tags")
         self.assertEqual(items[length - 1], "test tag")
 
-        fname =self.window.center_widget.current_item.data(Qt.DisplayRole)
+        fname = self.window.center_widget.current_item.data(Qt.DisplayRole)
         self.verify_caption(fname, "test tag")
 
     def verify_caption(self, filename, added_tag):
@@ -258,16 +258,18 @@ class TestMainWindow(TestCase):
         filename = self.window.center_widget.current_item.data(Qt.DisplayRole)
         caption = self.window.center_widget.model.results[filename]['training_caption']
 
-        def dialog_interaction():
-            for widget in QApplication.topLevelWidgets():
-                if isinstance(widget, QDialog) and widget.windowTitle() == "Caption":
-                    self.assertEqual(caption, widget.text_edit.Text(),
-                                     f"caption: {caption}, displayed: {widget.text_edit.Text()}")
-                    QApplication.processEvents()
-                    break
-        QTimer.singleShot(500, dialog_interaction)  # Needed to interact with dialogs
         checklist = self.window.center_widget.checklist
         checklist.view_caption()
+
+        # Only use single shot for _exec
+        for widget in QApplication.topLevelWidgets():
+            if isinstance(widget, QDialog) and widget.windowTitle() == "Caption":
+                self.assertEqual(caption, widget.text_edit.toPlainText(),
+                                 f"caption: {caption}, displayed: {widget.text_edit.toPlainText()}")
+                self.assertTrue("test tag" in widget.text_edit.toPlainText(),
+                                f"test tag not in caption, displayed: {widget.text_edit.toPlainText()}")
+                QApplication.processEvents()
+                break
 
     def test_edit_caption(self):
         """
