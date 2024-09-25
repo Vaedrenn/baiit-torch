@@ -133,9 +133,8 @@ class TestMainWindow(TestCase):
         # Validate displayed images and tag processing
         self.verify_results()
 
-        # Test adding a caption
+        # Test adding a tag
         self.test_add_tags()
-        self.check_tag_convention()
 
         # Placeholder for other tests: view, edit caption, and filters
         self.test_view_caption()
@@ -232,10 +231,7 @@ class TestMainWindow(TestCase):
         items = [checklist.item(x).data(Qt.DisplayRole) for x in range(checklist.count())]
         self.assertIn("test tag", items)
 
-    def check_tag_convention(self):
-        """
-        Check if the new items follow the expected convention: spacer, category, tags.
-        """
+        # Check if the new items follow the expected convention: spacer, category, tags.
         checklist = self.window.center_widget.checklist
         items = [checklist.item(x).data(Qt.DisplayRole) for x in range(checklist.count())]
 
@@ -243,6 +239,16 @@ class TestMainWindow(TestCase):
         self.assertEqual(items[length - 3], None)
         self.assertEqual(items[length - 2], "User_tags")
         self.assertEqual(items[length - 1], "test tag")
+
+        fname =self.window.center_widget.current_item.data(Qt.DisplayRole)
+        self.verify_caption(fname, "test tag")
+
+    def verify_caption(self, filename, added_tag):
+        """
+        Checks if the added tag is added to the caption
+        """
+        caption = self.window.center_widget.model.results[filename]['training_caption']
+        self.assertTrue(added_tag in caption, f"{added_tag} not found in {filename} caption")
 
     def test_view_caption(self):
         """
