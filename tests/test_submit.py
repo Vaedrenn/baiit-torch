@@ -252,9 +252,22 @@ class TestMainWindow(TestCase):
 
     def test_view_caption(self):
         """
-        Placeholder for testing the 'view caption' functionality.
+        Test the 'view caption' functionality.
+        Check if it shows up and check if it shows the current caption
         """
-        pass
+        filename = self.window.center_widget.current_item.data(Qt.DisplayRole)
+        caption = self.window.center_widget.model.results[filename]['training_caption']
+
+        def dialog_interaction():
+            for widget in QApplication.topLevelWidgets():
+                if isinstance(widget, QDialog) and widget.windowTitle() == "Caption":
+                    self.assertEqual(caption, widget.text_edit.Text(),
+                                     f"caption: {caption}, displayed: {widget.text_edit.Text()}")
+                    QApplication.processEvents()
+                    break
+        QTimer.singleShot(500, dialog_interaction)  # Needed to interact with dialogs
+        checklist = self.window.center_widget.checklist
+        checklist.view_caption()
 
     def test_edit_caption(self):
         """
