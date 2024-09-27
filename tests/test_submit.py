@@ -284,12 +284,23 @@ class TestMainWindow(TestCase):
         def dialog_interaction():
             for widget in QApplication.topLevelWidgets():
                 if isinstance(widget, QDialog) and widget.windowTitle() == "Edit Caption":
+
+                    # check if test_tag is shown
                     self.assertEqual(caption, widget.text_edit.toPlainText(),
                                      f"caption: {caption}, displayed: {widget.text_edit.toPlainText()}")
                     self.assertTrue("test tag" in widget.text_edit.toPlainText(),
                                     f"test tag not in caption, displayed: {widget.text_edit.toPlainText()}")
+
+                    # check if text can be changed
+                    new_caption = caption.replace(", test tag", "")
+                    widget.text_edit.setText(new_caption)
+                    self.assertFalse("test tag" in widget.text_edit.toPlainText(),
+                                     f"test tag still in caption, displayed: {widget.text_edit.toPlainText()}")
                     widget.accept()
                     QApplication.processEvents()
+
+                    results_caption = self.window.center_widget.model.results[filename]['training_caption']
+                    self.assertEqual(results_caption, new_caption, "caption is not updated")
                     break
 
         QTimer.singleShot(1000, dialog_interaction)
