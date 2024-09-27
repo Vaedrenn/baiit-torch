@@ -273,9 +273,27 @@ class TestMainWindow(TestCase):
 
     def test_edit_caption(self):
         """
-        Placeholder for testing the 'edit caption' functionality.
-        """
-        pass
+                Test the 'Edit caption' functionality.
+                Check if it shows up and check if it shows the current caption
+                """
+        filename = self.window.center_widget.current_item.data(Qt.DisplayRole)
+        caption = self.window.center_widget.model.results[filename]['training_caption']
+
+        checklist = self.window.center_widget.checklist
+
+        def dialog_interaction():
+            for widget in QApplication.topLevelWidgets():
+                if isinstance(widget, QDialog) and widget.windowTitle() == "Edit Caption":
+                    self.assertEqual(caption, widget.text_edit.toPlainText(),
+                                     f"caption: {caption}, displayed: {widget.text_edit.toPlainText()}")
+                    self.assertTrue("test tag" in widget.text_edit.toPlainText(),
+                                    f"test tag not in caption, displayed: {widget.text_edit.toPlainText()}")
+                    widget.accept()
+                    QApplication.processEvents()
+                    break
+
+        QTimer.singleShot(1000, dialog_interaction)
+        checklist.edit_caption()
 
     def test_filter(self):
         """
