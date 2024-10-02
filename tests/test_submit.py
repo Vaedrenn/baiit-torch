@@ -136,6 +136,8 @@ class TestMainWindow(TestCase):
         # Test adding a tag
         self.test_add_tags()
 
+        self.test_check("test tag")
+
         # Placeholder for other tests: view, edit caption, and filters
         self.test_view_caption()
         self.test_edit_caption()
@@ -271,6 +273,42 @@ class TestMainWindow(TestCase):
                 QApplication.processEvents()
                 break
 
+    def test_check(self, added_tag):
+        """
+        Test to see if checking and unchecking the item updates the caption
+        """
+        filename = self.window.center_widget.current_item.data(Qt.DisplayRole)
+        checklist = self.window.center_widget.checklist
+
+        # get item from checklist
+        test_item = -1
+        for i in range(checklist.count()):
+            item = checklist.item(i)
+            if added_tag == item.text():
+                test_item = i
+                break
+
+        test_item = checklist.item(test_item)
+
+        item_rect = checklist.visualItemRect(test_item)
+        QTest.mouseClick(checklist.viewport(), Qt.LeftButton, pos=item_rect.center())  # select the item
+        QTest.keyClick(checklist, Qt.Key_Space)  # uncheck the item
+        QTest.qWait(100)  # allow ui to update
+
+        self.assertEqual(test_item.checkState(), Qt.Unchecked, f"Item at index {test_item} still checked.")
+        caption = self.window.center_widget.model.results[filename]['training_caption']
+
+        self.assertFalse(added_tag in caption,
+                         f"{added_tag} is still in caption after being unchecked {filename} caption \n {caption}")
+
+        QTest.keyClick(checklist, Qt.Key_Space)  # recheck the item
+        QTest.qWait(100)
+
+        self.assertEqual(test_item.checkState(), Qt.Checked, f"Item at index {test_item} was not checked.")
+        caption = self.window.center_widget.model.results[filename]['training_caption']  # Refresh the caption
+        self.assertTrue(added_tag in caption,
+                        f"{added_tag} is not in caption after being checked {filename} caption \n {caption}")
+
     def test_edit_caption(self):
         """
                 Test the 'Edit caption' functionality.
@@ -278,13 +316,11 @@ class TestMainWindow(TestCase):
                 """
         filename = self.window.center_widget.current_item.data(Qt.DisplayRole)
         caption = self.window.center_widget.model.results[filename]['training_caption']
-
         checklist = self.window.center_widget.checklist
 
         def dialog_interaction():
             for widget in QApplication.topLevelWidgets():
                 if isinstance(widget, QDialog) and widget.windowTitle() == "Edit Caption":
-
                     # check if test_tag is shown
                     self.assertEqual(caption, widget.text_edit.toPlainText(),
                                      f"caption: {caption}, displayed: {widget.text_edit.toPlainText()}")
