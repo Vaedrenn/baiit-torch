@@ -344,9 +344,20 @@ class TestMainWindow(TestCase):
 
     def test_filter(self):
         """
-        Placeholder for testing the filter functionality.
+        testing the filter functionality.
         """
-        pass
+        filter_list = self.window.center_widget.filter_list
+        gallery = self.window.center_widget.image_gallery
+        searchbar = self.window.center_widget.searchbar
+
+        searchbar.setText("tree")
+        QTest.keyPress(searchbar, Qt.Key_Return)
+
+        self.assertEqual(gallery.model().rowCount(), 1)  # There should only be one item with that tag
+        filename = gallery.model().index(0,0).data(Qt.DisplayRole)
+        caption = self.window.center_widget.model.results[filename]['training_caption']
+        self.assertTrue("tree" in caption,
+                        f"tree is not in caption of {filename} caption \n {caption}")
 
     def check_results(self, results):
         # Convert results to a serializable format
