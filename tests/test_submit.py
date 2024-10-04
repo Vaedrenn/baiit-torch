@@ -372,6 +372,22 @@ class TestMainWindow(TestCase):
         self.assertTrue("ship" in caption and "cloudy sky" in caption,
                         f"ship and cloudy sky is not in caption of {filename} caption: \n {caption}")
 
+        # Click on "ship" and "cloudy sky" tags in filter_list for multi-tag check
+        model = filter_list.model()
+        for tag in ["ship", "cloudy sky"]:
+            for i in range(model.rowCount()):
+                index = model.index(i, 0)  # Get the index of the item
+                if index.data(Qt.DisplayRole) == tag:  # If the item's text matches the tag
+                    rect = filter_list.visualRect(index)
+                    QTest.mouseClick(filter_list.viewport(), Qt.LeftButton, pos=rect.center())
+
+                    self.assertEqual(gallery.model().rowCount(), 2,
+                                     f"There should be 2 items with the {tag} tags.")
+                    self.assertTrue(tag in caption,
+                                    f"{tag} is not both in the caption of {filename}. Caption: \n{caption}")
+                    break
+
+
     def check_results(self, results):
         # Convert results to a serializable format
         serializable_results = _tensor_to_json(results)
