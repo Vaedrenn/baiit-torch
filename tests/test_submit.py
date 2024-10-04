@@ -140,8 +140,9 @@ class TestMainWindow(TestCase):
 
         # Placeholder for other tests: view, edit caption, and filters
         self.test_view_caption()
-        self.test_edit_caption()
         self.test_filter()
+
+        self.test_edit_caption()
 
     # ---- Helper Methods ----
 
@@ -350,17 +351,26 @@ class TestMainWindow(TestCase):
         gallery = self.window.center_widget.image_gallery
         searchbar = self.window.center_widget.searchbar
 
-        searchbar.setText("tree")
+        searchbar.setText("test tag")
         QTest.keyPress(searchbar, Qt.Key_Return)
 
         self.assertEqual(gallery.model().rowCount(), 1)  # There should only be one item with that tag
         filename = gallery.model().index(0,0).data(Qt.DisplayRole)
         caption = self.window.center_widget.model.results[filename]['training_caption']
-        self.assertTrue("tree" in caption,
-                        f"tree is not in caption of {filename} caption: \n {caption}")
+        self.assertTrue("test tag" in caption,
+                        f"test tag is not in caption of {filename} caption: \n {caption}")
 
         self.window.center_widget.clear_filter()
         self.assertEqual(gallery.model().rowCount(), 3)
+
+        # multi tag check
+        searchbar.setText("ship, cloudy sky")
+        QTest.keyPress(searchbar, Qt.Key_Return)
+        self.assertEqual(gallery.model().rowCount(), 2)  # There should be 2 items with that tag
+        filename = gallery.model().index(0, 0).data(Qt.DisplayRole)
+        caption = self.window.center_widget.model.results[filename]['training_caption']
+        self.assertTrue("ship" in caption and "cloudy sky" in caption,
+                        f"ship and cloudy sky is not in caption of {filename} caption: \n {caption}")
 
     def check_results(self, results):
         # Convert results to a serializable format
