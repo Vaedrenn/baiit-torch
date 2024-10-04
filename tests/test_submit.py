@@ -357,7 +357,10 @@ class TestMainWindow(TestCase):
         filename = gallery.model().index(0,0).data(Qt.DisplayRole)
         caption = self.window.center_widget.model.results[filename]['training_caption']
         self.assertTrue("tree" in caption,
-                        f"tree is not in caption of {filename} caption \n {caption}")
+                        f"tree is not in caption of {filename} caption: \n {caption}")
+
+        self.window.center_widget.clear_filter()
+        self.assertEqual(gallery.model().rowCount(), 3)
 
     def check_results(self, results):
         # Convert results to a serializable format
