@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
 class CentralWidget(QWidget):
     itemChanged = pyqtSignal(object)
     modelChanged = pyqtSignal(object)
+    jsonImported = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -96,6 +97,7 @@ class CentralWidget(QWidget):
         navbar.layout().setContentsMargins(0, 0, 0, 0)
         navbar.layout().setSpacing(5)
         self.add_buttons_to_navbar(navbar)
+        self.jsonImported.connect(self.process_results)
 
         # Wrapup
         self.layout().addWidget(navbar)
@@ -234,8 +236,6 @@ class CentralWidget(QWidget):
         if not self.model:
             return False
 
-        # Placeholder method for writing tags to file
-        print("Write tags action triggered")
         selected_rows = self.image_gallery.selectedIndexes()
         for row in selected_rows:
             filepath = self.model.data(row)
@@ -259,14 +259,12 @@ class CentralWidget(QWidget):
             try:
                 with open(filename, 'r') as infile:
                     results = json.load(infile)
-                    self.process_results(results)
                 # QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
+                self.jsonImported.emit(results)
                 return True
             except RuntimeError as e:
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
                 return None
-        if self.current_item:
-            self.current_item = None
 
     def _tensor_to_json(self, obj):
         from torch import Tensor
