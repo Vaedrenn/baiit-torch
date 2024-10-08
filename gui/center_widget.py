@@ -262,9 +262,14 @@ class CentralWidget(QWidget):
                 # QMessageBox.information(None, "Import Successful", f"Tags imported from {filename}")
                 self.jsonImported.emit(results)
                 return True
-            except RuntimeError as e:
+            except FileNotFoundError:
+                QMessageBox.critical(None, "File Not Found", f"The file '{filename}' was not found.")
+            except json.JSONDecodeError:
+                QMessageBox.critical(None, "Invalid JSON", f"The file '{filename}' is not a valid JSON file.")
+            except Exception as e:
+                # Catch any other unexpected errors
                 QMessageBox.critical(None, "Import Failed", f"An error occurred: {str(e)}")
-                return None
+            return None
 
     def _tensor_to_json(self, obj):
         from torch import Tensor
