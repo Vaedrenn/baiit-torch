@@ -31,6 +31,7 @@ class FilterListModel(QAbstractListModel):
         return QVariant()
 
     def filter(self):
+        # Change count of tags when filtering
         tag_counts = self.other_model.filtered_state.drop(columns=['filename']).sum()
         tag_counts = tag_counts.sort_values(ascending=False)
         tag_counts = tag_counts[tag_counts >= 1]

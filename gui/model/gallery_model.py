@@ -62,9 +62,10 @@ class ImageGalleryTableModel(QAbstractListModel):
 
         """Filter for filenames results where tags are true"""
         if not tags:
-            self.filtered_filenames = self.filenames
+            self.filtered_filenames = self.filenames  # No filtering, display all filenames
         else:
             try:
+                # Create a boolean mask where rows with all True values for the given 'tags' are selected.
                 mask = self.state[tags].all(axis=1)
                 self.filtered_state = self.state[mask]
                 self.filtered_filenames = self.filtered_state.loc[:, "filename"].tolist()

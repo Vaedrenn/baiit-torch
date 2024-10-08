@@ -19,6 +19,9 @@ class FilterList(QListView):
         self.setFont(font)
 
     def on_item_clicked(self, index):
+        """
+        When item is clicked add/remove item to selected items and emit the item.
+        """
         tag = self.model().data(index, TAG)
         if tag in self.selected_items:
             self.selected_items.remove(tag)
@@ -26,6 +29,7 @@ class FilterList(QListView):
             self.selected_items.add(tag)
         self.itemClicked.emit(tag)  # Emit the custom signal with the item text
 
+        # Update the selection state of all items in the model based on the selected_items list.
         for row in range(self.model().rowCount()):
             index = self.model().index(row)
             tag = self.model().data(index, TAG)
