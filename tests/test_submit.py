@@ -1,9 +1,11 @@
 import json
 import sys
-from PyQt5.QtWidgets import QApplication, QPushButton, QDialog, QMenu
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt, QTimer, QEventLoop, QPoint
 from unittest import TestCase
+
+from PyQt5.QtCore import Qt, QTimer, QEventLoop
+from PyQt5.QtTest import QTest
+from PyQt5.QtWidgets import QApplication, QPushButton, QDialog
+
 from gui.center_widget import MainWindow
 
 
@@ -122,7 +124,11 @@ class TestMainWindow(TestCase):
         """
         self.window.show()
 
-        submit_button = self.find_submit_button()
+        submit_button = None
+        for btn in self.window.center_widget.findChildren(QPushButton):
+            if btn.toolTip() == "Predict tags for images":
+                submit_button = btn
+
         self.assertIsNotNone(submit_button, "Submit button not found!")
 
         # Simulate interaction with the submit dialog
@@ -134,26 +140,43 @@ class TestMainWindow(TestCase):
         self.verify_results()
 
         # Test adding a tag
-        self.test_add_tags()
+        self._test_add_tags()
 
-        self.test_check("test tag")
+        self._test_check("test tag")
 
-        # Placeholder for other tests: view, edit caption, and filters
-        self.test_view_caption()
-        self.test_filter()
+        self._test_view_caption()
 
-        self.test_edit_caption()
+        self._test_filter()
+
+        self._test_edit_caption()
+
+    def test_json_load(self):
+        self.window.show()
+
+        filename = "test results.json"
+        try:
+            with open(filename, 'r') as infile:
+                results = json.load(infile)
+        except Exception as e:
+            self.fail(f"Unexpected exception raised: {str(e)}")
+
+        self.window.center_widget.process_results(results)
+
+        # Validate displayed images and tag processing
+        self.verify_results()
+
+        # Test adding a tag
+        self._test_add_tags()
+
+        self._test_check("test tag")
+
+        self._test_view_caption()
+
+        self._test_filter()
+
+        self._test_edit_caption()
 
     # ---- Helper Methods ----
-
-    def find_submit_button(self):
-        """
-        Find the submit button in the navigation bar.
-        """
-        for btn in self.window.center_widget.findChildren(QPushButton):
-            if btn.toolTip() == "Predict tags for images":
-                return btn
-        return None
 
     def wait_for_results(self):
         """
@@ -161,7 +184,7 @@ class TestMainWindow(TestCase):
         """
 
         def handle_results(results):
-            self.check_results(results)
+            self._check_results(results)
             self.event_loop.quit()
 
         dialog = find_dialog("Set Thresholds")
@@ -213,7 +236,7 @@ class TestMainWindow(TestCase):
                 self.assertIn(str(category).lower(), widget_categories,
                               f"Tag {category.lower()} shouldn't be in categories")
 
-    def test_add_tags(self):
+    def _test_add_tags(self):
         """
         Test the functionality to add a tag.
         """
@@ -244,16 +267,16 @@ class TestMainWindow(TestCase):
         self.assertEqual(items[length - 1], "test tag")
 
         fname = self.window.center_widget.current_item.data(Qt.DisplayRole)
-        self.verify_caption(fname, "test tag")
+        self._verify_caption(fname, "test tag")
 
-    def verify_caption(self, filename, added_tag):
+    def _verify_caption(self, filename, added_tag):
         """
         Checks if the added tag is added to the caption
         """
         caption = self.window.center_widget.model.results[filename]['training_caption']
         self.assertTrue(added_tag in caption, f"{added_tag} not found in {filename} caption")
 
-    def test_view_caption(self):
+    def _test_view_caption(self):
         """
         Test the 'view caption' functionality.
         Check if it shows up and check if it shows the current caption
@@ -274,7 +297,7 @@ class TestMainWindow(TestCase):
                 QApplication.processEvents()
                 break
 
-    def test_check(self, added_tag):
+    def _test_check(self, added_tag):
         """
         Test to see if checking and unchecking the item updates the caption
         """
@@ -310,7 +333,7 @@ class TestMainWindow(TestCase):
         self.assertTrue(added_tag in caption,
                         f"{added_tag} is not in caption after being checked {filename} caption \n {caption}")
 
-    def test_edit_caption(self):
+    def _test_edit_caption(self):
         """
                 Test the 'Edit caption' functionality.
                 Check if it shows up and check if it shows the current caption
@@ -343,10 +366,11 @@ class TestMainWindow(TestCase):
         QTimer.singleShot(1000, dialog_interaction)
         checklist.edit_caption()
 
-    def test_filter(self):
+    def _test_filter(self):
         """
         testing the filter functionality.
         """
+
         filter_list = self.window.center_widget.filter_list
         gallery = self.window.center_widget.image_gallery
         searchbar = self.window.center_widget.searchbar
@@ -355,7 +379,7 @@ class TestMainWindow(TestCase):
         QTest.keyPress(searchbar, Qt.Key_Return)
 
         self.assertEqual(gallery.model().rowCount(), 1)  # There should only be one item with that tag
-        filename = gallery.model().index(0,0).data(Qt.DisplayRole)
+        filename = gallery.model().index(0, 0).data(Qt.DisplayRole)
         caption = self.window.center_widget.model.results[filename]['training_caption']
         self.assertTrue("test tag" in caption,
                         f"test tag is not in caption of {filename} caption: \n {caption}")
@@ -386,9 +410,9 @@ class TestMainWindow(TestCase):
                     self.assertTrue(tag in caption,
                                     f"{tag} is not both in the caption of {filename}. Caption: \n{caption}")
                     break
+        self.window.center_widget.clear_filter()
 
-
-    def check_results(self, results):
+    def _check_results(self, results):
         # Convert results to a serializable format
         serializable_results = _tensor_to_json(results)
 
