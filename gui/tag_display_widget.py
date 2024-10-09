@@ -105,12 +105,14 @@ class TagDisplay(CheckListWidget):
         if self.model is None or self.parent().current_item is None:
             return
         caption_window = CaptionWindow(self.parent(), readonly=True)
+        self.parent().modelChanged.connect(caption_window.model_changed)
         caption_window.show()
 
     def edit_caption(self):
         if self.model is None or self.parent().current_item is None:
             return
         caption_window = CaptionWindow(self.parent(), readonly=False)
+        self.parent().modelChanged.connect(caption_window.model_changed)
         caption_window.exec_()
 
     def state_changed(self, item):
