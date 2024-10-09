@@ -335,9 +335,14 @@ class TestMainWindow(TestCase):
 
     def _test_edit_caption(self):
         """
-                Test the 'Edit caption' functionality.
-                Check if it shows up and check if it shows the current caption
-                """
+        Test the 'Edit caption' functionality.
+        Check if it shows up and check if it shows the current caption
+        """
+        image_gallery = self.window.center_widget.image_gallery
+        first_item = image_gallery.model().index(0)
+        rect = image_gallery.visualRect(first_item)
+        QTest.mouseClick(image_gallery.viewport(), Qt.LeftButton, pos=rect.center())
+
         filename = self.window.center_widget.current_item.data(Qt.DisplayRole)
         caption = self.window.center_widget.model.results[filename]['training_caption']
         checklist = self.window.center_widget.checklist

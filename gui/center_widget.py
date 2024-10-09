@@ -196,6 +196,7 @@ class CentralWidget(QWidget):
             self.model.filter(None)
             self.tag_model.default()
         self.filter_list.selected_items.clear()
+        self.image_gallery.selectionModel().clear()
 
     def update_page(self, item):
         """
