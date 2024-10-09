@@ -58,9 +58,14 @@ class ImageGalleryTableModel(QAbstractListModel):
         self.icons_ready.emit()
         self.layoutChanged.emit()
 
-    def filter(self, tags: list):
+    def filter(self, tags: list, view=None):
+        """
+        Filter for filenames results where tags are true and clear selection of the list view.
 
-        """Filter for filenames results where tags are true"""
+        Args:
+            tags (list): List of tags to filter by.
+            view (QListView, optional): The QListView to clear selection for.
+        """
         if not tags:
             self.filtered_filenames = self.filenames  # No filtering, display all filenames
         else:
@@ -71,8 +76,12 @@ class ImageGalleryTableModel(QAbstractListModel):
                 self.filtered_filenames = self.filtered_state.loc[:, "filename"].tolist()
             except KeyError:
                 self.filtered_filenames = []
-        self.layoutChanged.emit()
 
+        if view is not None:
+            view.selectionModel().clear()
+
+        # Emit layoutChanged signal to update the view
+        self.layoutChanged.emit()
 
 def build_table(results):
     unique_tags = set()

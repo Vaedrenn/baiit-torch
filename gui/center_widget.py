@@ -184,8 +184,10 @@ class CentralWidget(QWidget):
         if not selected_tags:
             self.model.filter(None)
             self.tag_model.default()
+            self.current_item = None
         else:
-            self.model.filter(selected_tags)
+            self.model.filter(selected_tags, self.image_gallery)
+            self.current_item = None
 
     def clear_filter(self):
         self.filter_list.clearSelection()
